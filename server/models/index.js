@@ -1,33 +1,32 @@
-const path = require("path");
+import path from "path";
+import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
+import { getProductionDay, itemsPerHour, dateToDays } from "../utilities/index.js";
 
-const { MongoClient } = require("mongodb");
-const { getProductionDay, itemsPerHour, dateToDays } = require("../utilities");
-
-require("dotenv").config({
-  path: path.join(__dirname, "../config/.env"),
+// Load environment variables
+dotenv.config({
+  path: path.join(process.cwd(), "config/.env"),
 });
 
-// Create a function to connect to the MongoDB database
 let client;
 
-async function connectToDB() {
+/** Connect to MongoDB */
+export async function connectToDB() {
   try {
     if (!client) {
       client = new MongoClient(process.env.MONGODB_URI);
       await client.connect();
     }
-
     const db = client.db("cc-orders");
-
-    return { db: db, client: client };
+    return { db, client };
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
     throw error;
   }
 }
 
-// Adds orders to mongodb database
-async function newArchive(orders) {
+/** Insert new orders */
+export async function newArchive(orders) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("orders");
@@ -38,7 +37,8 @@ async function newArchive(orders) {
   }
 }
 
-async function newNotification(notifications) {
+/** Insert new notifications */
+export async function newNotification(notifications) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("shipments-notified");
@@ -49,598 +49,335 @@ async function newNotification(notifications) {
   }
 }
 
-async function deleteData(collectionName) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const { db } = await connectToDB();
-      const collection = db.collection(collectionName);
-
-      const sixtyDaysAgo = new Date();
-      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-
-      // Convert to ISO string and extract YYYY-MM-DD
-      const formattedDate = sixtyDaysAgo.toISOString().split("T")[0];
-
-      const query = { productionDay: { $lt: formattedDate } };
-
-      const result = await collection.deleteMany(query);
-
-      // Log the result of the deletion
-      console.log("Deleted documents count:", result.deletedCount);
-
-      resolve(result);
-    } catch (err) {
-      // Reject the promise if there's an error during deletion
-      reject(err);
-    }
-  });
-}
-
-// Pulls mongoDB data based on collection name
-async function getMongoData(collectionName) {
+/** Delete old documents */
+export async function deleteData(collectionName) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection(collectionName);
 
-    const query = {};
-    const documents = await collection.find(query).toArray();
-    return documents;
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    const formattedDate = sixtyDaysAgo.toISOString().split("T")[0];
+
+    const result = await collection.deleteMany({ productionDay: { $lt: formattedDate } });
+    console.log("Deleted documents count:", result.deletedCount);
+    return result;
   } catch (err) {
-    console.error("Error while processing the GET request:", err);
+    console.error(err);
+    throw err;
   }
 }
 
-// Queries totals on the fly
-async function queryOrdersByDate(date) {
+/** Get all documents from a collection */
+export async function getMongoData(collectionName) {
+  try {
+    const { db } = await connectToDB();
+    const collection = db.collection(collectionName);
+    return await collection.find({}).toArray();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/** Query orders by productionDay */
+export async function queryOrdersByDate(date) {
   return new Promise(async (resolve, reject) => {
     try {
       const { db } = await connectToDB();
       const collection = db.collection("orders");
-
       const query = { productionDay: date };
-      const projection = {
-        items: 1,
-        customerNotes: 1,
-      };
+      const projection = { items: 1, customerNotes: 1 };
       const stream = collection.find(query).project(projection).stream();
 
       const result = [];
-
-      // Event listener for each document in the stream
-      stream.on("data", (document) => {
-        // Process each document
-        result.push(document);
-      });
-
-      // Event listener when all documents have been processed
-      stream.on("end", () => {
-        // Resolve the promise with the collected data
-        resolve(result);
-      });
-
-      // Event listener for errors during the streaming process
-      stream.on("error", (err) => {
-        // Reject the promise with the error
-        reject(err);
-      });
-      return result;
+      stream.on("data", doc => result.push(doc));
+      stream.on("end", () => resolve(result));
+      stream.on("error", err => reject(err));
     } catch (err) {
-      // Reject the promise if there's an error during setup
       reject(err);
     }
   });
 }
 
-// Finds orders without productionday
-async function unprocessedOrderIds() {
+/** Orders missing productionDay */
+export async function unprocessedOrderIds() {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("orders");
-
-    const query = { productionDay: { $exists: false } };
-
-    const projection = {
-      _id: 0, // Exclude the _id field
-      orderId: 1,
-    };
-
-    const documents = await collection
-      .find(query)
-      .project(projection)
-      .toArray();
-    return documents;
+    return await collection.find({ productionDay: { $exists: false } })
+                           .project({ _id: 0, orderId: 1 })
+                           .toArray();
   } catch (err) {
-    console.error("Error while processing the GET request:", err);
+    console.error(err);
   }
 }
 
-async function shipIdsByDate(date) {
+/** Get shipped IDs by date */
+export async function shipIdsByDate(date) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("shipments-notified");
-
-    const projection = {
-      _id: 0, // Exclude the _id field
-      orderId: 1,
-      // productionDay: 1,
-    };
-
-    const query = { productionDay: date };
-    const documents = await collection
-      .find(query)
-      .project(projection)
-      .toArray();
-    return documents;
+    return await collection.find({ productionDay: date })
+                           .project({ _id: 0, orderId: 1 })
+                           .toArray();
   } catch (err) {
-    console.error("Error while processing the GET request:", err);
+    console.error(err);
   }
 }
 
-// Gets Daily Totals
-// USE THIS FOR GETTING DATA OF THE DAY FOR DOWNLOAD
-async function pullTotalDataOfDay(productionDay) {
+/** Get totals of a day */
+export async function pullTotalDataOfDay(productionDay) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("daily-totals");
-
-    const query = { productionDay: productionDay };
-
-    const dailyTotals = await collection.findOne(query);
-    if (dailyTotals !== null && dailyTotals !== undefined) {
-      return dailyTotals;
-    } else {
-      return {
-        Error: "Totals have not been archived yet",
-      };
-    }
+    const dailyTotals = await collection.findOne({ productionDay });
+    return dailyTotals ?? { Error: "Totals have not been archived yet" };
   } catch (err) {
-    console.error("Error while processing the GET request:", err);
+    console.error(err);
   }
 }
 
-async function pullProductionDays() {
+/** Get distinct productionDays */
+export async function pullProductionDays() {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("daily-totals");
-
-    const field = "productionDay";
-
-    const productionDays = await collection.distinct(field);
-
-    if (productionDays.length > 0) {
-      return productionDays;
-    } else {
-      return {
-        Error: "No documents available",
-      };
-    }
+    const days = await collection.distinct("productionDay");
+    return days.length > 0 ? days : { Error: "No documents available" };
   } catch (err) {
-    console.error("Error while processing the GET request:", err);
+    console.error(err);
   }
 }
 
-async function pullQueDays() {
+/** Get order queue productionDays */
+export async function pullQueDays() {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("order-que");
-
-    const productionDays = await collection.distinct("productionDay");
-
-    if (productionDays.length > 0) {
-      return productionDays;
-    } else {
-      return {
-        Error: "No documents available",
-      };
-    }
+    const days = await collection.distinct("productionDay");
+    return days.length > 0 ? days : { Error: "No documents available" };
   } catch (err) {
-    console.error("Error while processing the GET request:", err);
+    console.error(err);
   }
 }
 
-// Creates a callback to use mongodb data
-// USE THIS FOR GENERATING NUMBERS ON THE FLY
-async function useStoredOrders(callback) {
+/** Callback with all orders */
+export async function useStoredOrders(callback) {
   try {
-    const storedOrders = await getMongoData("orders");
-    callback(storedOrders);
-  } catch (error) {
-    console.error("Error while processing the GET request:", error);
-    throw error;
+    const orders = await getMongoData("orders");
+    callback(orders);
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-async function storeTotals(totals, date) {
+/** Store daily totals */
+export async function storeTotals(totals, date) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("daily-totals");
-
-    const query = { productionDay: date };
-
-    const exists = await collection.findOne(query);
+    const exists = await collection.findOne({ productionDay: date });
 
     if (!exists) {
-      collection.insertOne(totals);
+      await collection.insertOne(totals);
     } else {
-      collection.updateOne(query, {
-        $set: {
-          items: totals.items,
-          hats: totals.hats,
-          bibs: totals.bibs,
-          miniBears: totals.miniBears,
-          giftBaskets: totals.giftBaskets,
-          FBA: totals.FBA,
-          towels: totals.towels,
-          potHolders: totals.potHolders,
-          bandanas: totals.bandanas,
-          totalItems: totals.totalItems,
-          totalHours: totals.totalHours,
-        },
-      });
+      await collection.updateOne({ productionDay: date }, { $set: totals });
     }
-  } catch (error) {
-    console.error("Error inserting totals:", error);
+  } catch (err) {
+    console.error(err);
   }
 }
 
-// Adds total work hours to daily-totals
-async function addTotalHours(totalHours, date) {
+/** Add totalHours to daily totals */
+export async function addTotalHours(totalHours, date) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("daily-totals");
-
-    // Assuming you have a filter condition to identify the documents to update
-    const filter = { productionDay: date };
-    const totals = await collection.findOne(filter);
-
-    const updateDoc = {
-      $set: {
-        totalHours: totalHours,
-      },
-    };
-
-    const result = await collection.updateOne(filter, updateDoc);
+    const result = await collection.updateOne({ productionDay: date }, { $set: { totalHours } });
     console.log(`${result.modifiedCount} document(s) updated`);
-  } catch (error) {
-    console.error("Error while processing the PUT request:", error);
-    throw error;
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-// Finds Total Hours
-async function getTotalHours() {
+/** Get total hours of today */
+export async function getTotalHours() {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("daily-totals");
-
-    // Assuming you have a filter condition to identify the documents to update
-    const filter = { productionDay: getProductionDay().today };
-    const totals = await collection.findOne(filter);
-
-    if (totals !== null) {
-      return totals.totalHours;
-    } else {
-      return 0;
-    }
-  } catch (error) {
-    console.error("Error while processing the PUT request:", error);
-    throw error;
+    const totals = await collection.findOne({ productionDay: getProductionDay().today });
+    return totals?.totalHours ?? 0;
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-async function addFBA(FBA, date) {
-  FBA = parseInt(FBA);
+/** Add FBA totals */
+export async function addFBA(FBA, date) {
+  FBA = parseInt(FBA, 10);
   try {
     const { db } = await connectToDB();
     const collection = db.collection("daily-totals");
+    const exists = await collection.findOne({ productionDay: date });
+    if (exists) {
+      const totalItems =
+        exists.items + exists.hats + exists.bibs + exists.miniBears +
+        exists.giftBaskets + exists.towels + exists.potHolders + exists.bandanas + FBA;
 
-    const filter = { productionDay: date };
-    const exists = await collection.findOne(filter);
-
-    let result;
-    exists.totalItems =
-      exists.items +
-      exists.hats +
-      exists.bibs +
-      exists.miniBears +
-      exists.giftBaskets +
-      exists.towels +
-      exists.potHolders +
-      exists.bandanas;
-    const newTotalItems = exists.totalItems + FBA;
-    if (exists && exists !== null) {
-      exists.FBA = FBA;
-
-      const updateDoc = {
-        $set: {
-          FBA: FBA,
-          totalItems: newTotalItems,
-        },
-      };
-
-      result = await collection.updateOne(filter, updateDoc);
-      console.log(`${result.modifiedCount} document(s) updated`);
+      await collection.updateOne({ productionDay: date }, { $set: { FBA, totalItems } });
     } else {
-      console.log(`Error: Totals haven't been calculated yet`);
+      console.log("Error: Totals haven't been calculated yet");
     }
-  } catch (error) {
-    console.error("Error while processing the PUT request:", error);
-    throw error;
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-async function getFBANo() {
+/** Get today's FBA number */
+export async function getFBANo() {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("daily-totals");
-
-    const filter = { productionDay: getProductionDay().today };
-    const totals = await collection.findOne(filter);
-
-    if (totals !== null) {
-      return totals.FBA;
-    } else {
-      return 0;
-    }
-  } catch (error) {
-    console.error("Error while processing the PUT request:", error);
-    throw error;
+    const totals = await collection.findOne({ productionDay: getProductionDay().today });
+    return totals?.FBA ?? 0;
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-// Finds login credentials
-async function findUser(username) {
+/** Find user credentials */
+export async function findUser(username) {
   try {
     const { db } = await connectToDB();
-    const collection = db.collection("users");
-
-    const query = { username: username };
-
-    const user = await collection.findOne(query);
-
-    if (user) {
-      console.log(`User found`);
-      return user; // Return the user object
-    } else {
-      console.log(`User not found`);
-      return null; // Return null if user not found
-    }
-  } catch (error) {
-    console.error("Error while finding user:", error);
-    throw error;
+    return await db.collection("users").findOne({ username });
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-async function setProductionDay(no, date) {
+/** Set productionDay for an order */
+export async function setProductionDay(orderId, date) {
   try {
     const { db } = await connectToDB();
-    const collection = db.collection("orders");
+    await db.collection("orders").updateOne({ orderId }, { $set: { productionDay: date } });
+  } catch (err) {
+    console.error(err);
+  }
+}
 
-    const query = { orderId: no };
+/** Historical totals range */
+export async function getHistoricalRange(startDate, endDate) {
+  try {
+    const { db } = await connectToDB();
+    const result = await db.collection("daily-totals")
+                           .find({ productionDay: { $gte: startDate, $lte: endDate } })
+                           .sort({ productionDay: 1 })
+                           .toArray();
 
-    collection.updateOne(query, {
-      $set: {
-        productionDay: date,
-      },
+    return result.map(doc => {
+      const totalHours = Number((Math.round(doc.totalHours * 10) / 10).toFixed(1));
+      const iph = itemsPerHour(doc.totalItems, totalHours);
+      return { ...doc, itemsPerHour: iph === "Infinity" ? "N/A" : iph };
     });
-  } catch (error) {
-    console.error("Error inserting production day:", error);
+  } catch (err) {
+    console.error(err);
   }
 }
 
-async function getHistoricalRange(startDate, endDate) {
+/** Get order IDs by date range */
+export async function getOrderIDs(startDate, endDate) {
   try {
     const { db } = await connectToDB();
-    const collection = db.collection("daily-totals");
-
-    const result = await collection
-      .find({
-        productionDay: {
-          $gte: startDate,
-          $lte: endDate,
-        },
-      })
-      .sort({ productionDay: 1 })
-      .toArray();
-
-    for (let x = 0; x < result.length; x++) {
-      const totalItems = result[x].totalItems;
-      const totalHours = (Math.round(result[x].totalHours * 10) / 10).toFixed(
-        1
-      );
-
-      result[x].itemsPerHour = itemsPerHour(totalItems, totalHours);
-
-      if (result[x].itemsPerHour === "Infinity") {
-        result[x].itemsPerHour = "N/A";
-      }
-    }
-
-    return result;
-  } catch (error) {
-    console.error("Error inserting production day:", error);
-  }
-}
-
-async function getOrderIDs(startDate, endDate) {
-  try {
-    const { db } = await connectToDB();
-    const collection = db.collection("orders");
-
-    const orderIDs = await collection.distinct("orderId", {
-      productionDay: {
-        $gte: startDate,
-        $lte: endDate,
-      },
+    return await db.collection("orders").distinct("orderId", {
+      productionDay: { $gte: startDate, $lte: endDate },
     });
-
-    return orderIDs;
-  } catch (error) {
-    console.error("Error retrieving order Ids:", error);
+  } catch (err) {
+    console.error(err);
   }
 }
 
-async function getAllOrderIDs() {
+/** Get all order IDs */
+export async function getAllOrderIDs() {
   try {
     const { db } = await connectToDB();
-    const collection = db.collection("orders");
-
-    const projection = {
-      orderId: 1,
-    };
-
-    const orderIDs = await collection.find({}).project(projection).toArray();
-
-    return orderIDs;
-  } catch (error) {
-    console.error("Error retrieving order Ids:", error);
+    return await db.collection("orders").find({}).project({ orderId: 1 }).toArray();
+  } catch (err) {
+    console.error(err);
   }
 }
 
-async function updateExcelTotalHours(productionDay, hours) {
+/** Update total hours in daily-totals */
+export async function updateExcelTotalHours(productionDay, hours) {
   try {
     const { db } = await connectToDB();
-    const collection = db.collection("daily-totals");
-
-    const query = { productionDay: productionDay };
-
-    const result = await collection.updateOne(query, {
-      $set: {
-        totalHours: hours,
-      },
-    });
-
-    if (result.modifiedCount === 1) {
-      console.log(
-        `Updated total hours for production day ${productionDay} to ${hours}`
-      );
-      return true;
-    } else {
-      console.log(
-        `No document found for production day ${productionDay}, or ${productionDay} already is at ${hours} total hours`
-      );
-      return false;
-    }
-  } catch (error) {
-    console.error("Error updating total hours:", error);
-    throw error;
+    const result = await db.collection("daily-totals")
+                           .updateOne({ productionDay }, { $set: { totalHours: hours } });
+    return result.modifiedCount === 1;
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-async function orderVolumesReport(dates) {
+/** Order volumes report */
+export async function orderVolumesReport(dates) {
   try {
     const { db } = await connectToDB();
     const que = db.collection("order-que");
     const dailyTotals = db.collection("daily-totals");
 
-    // Aggregate data for each date
     const result = [];
     for (const date of dates) {
       const [queData, productionHours] = await Promise.all([
         que.findOne({ productionDay: date }),
-        dailyTotals
-          .aggregate([
-            {
-              $match: { productionDay: date },
-            },
-            {
-              $project: {
-                _id: 0,
-                totalHours: { $round: ["$totalHours", 1] },
-              },
-            },
-          ])
-          .toArray(),
+        dailyTotals.aggregate([
+          { $match: { productionDay: date } },
+          { $project: { _id: 0, totalHours: { $round: ["$totalHours", 1] } } }
+        ]).toArray()
       ]);
-
-      const totalHours =
-        productionHours.length > 0 ? productionHours[0].totalHours : 0;
-
-      const data = {
+      result.push({
         productionDay: date,
-        fiveAM: queData ? queData.fiveAM : 0,
-        threePM: queData ? queData.threePM : 0,
-        sixPM: queData ? queData.sixPM : 0,
-        ninePM: queData ? queData.ninePM : 0,
-        elevenPM: queData ? queData.elevenPM : 0,
-        productionHours: totalHours,
-      };
-
-      result.push(data);
+        fiveAM: queData?.fiveAM ?? 0,
+        threePM: queData?.threePM ?? 0,
+        sixPM: queData?.sixPM ?? 0,
+        ninePM: queData?.ninePM ?? 0,
+        elevenPM: queData?.elevenPM ?? 0,
+        productionHours: productionHours[0]?.totalHours ?? 0,
+      });
     }
-
     return result;
-  } catch (error) {
-    console.error("Error fetching historical range report:", error);
-    throw error;
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
 
-async function addQueTotal(time) {
+/** Add que totals */
+export async function addQueTotal(time) {
   try {
     const { db } = await connectToDB();
     const collection = db.collection("order-que");
     const todaysDate = getProductionDay().today;
 
     const que = await collection.find({ productionDay: todaysDate }).toArray();
-
-    if (que.length === 0) {
-      const queDate = {
-        productionDay: todaysDate,
-        fiveAM: 0,
-        threePM: 0,
-        sixPM: 0,
-        ninePM: 0,
-        elevenPM: 0,
-      };
-      await collection.insertOne(queDate);
+    if (!que.length) {
+      await collection.insertOne({ productionDay: todaysDate, fiveAM:0, threePM:0, sixPM:0, ninePM:0, elevenPM:0 });
     }
 
     const url = `https://reporting-app-3194629a4aed.herokuapp.com/awaiting-shipment?page=1`;
     const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const { total } = await response.json();
-
-    await collection.updateOne(
-      { productionDay: todaysDate },
-      { $set: { [time]: total } }
-    );
-  } catch (error) {
-    console.error("Error adding que total:", error);
-    throw error;
+    await collection.updateOne({ productionDay: todaysDate }, { $set: { [time]: total } });
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
 }
-
-
-
-module.exports = {
-  connectToDB,
-  newArchive,
-  newNotification,
-  getMongoData,
-  useStoredOrders,
-  storeTotals,
-  addTotalHours,
-  findUser,
-  getTotalHours,
-  pullTotalDataOfDay,
-  addFBA,
-  getFBANo,
-  pullProductionDays,
-  pullQueDays,
-  setProductionDay,
-  getHistoricalRange,
-  queryOrdersByDate,
-  getOrderIDs,
-  shipIdsByDate,
-  unprocessedOrderIds,
-  getAllOrderIDs,
-  deleteData,
-  updateExcelTotalHours,
-  orderVolumesReport,
-  addQueTotal,
-};

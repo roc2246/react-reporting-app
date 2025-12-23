@@ -1,29 +1,36 @@
-const nodemailer = require("nodemailer");
-const path = require("path");
+import nodemailer from "nodemailer";
+import path from "path";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
 
-require("dotenv").config({
+// Convert __dirname for ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables
+dotenv.config({
   path: path.join(__dirname, "../config/.env"),
 });
 
-module.exports = async (subject, text, sendTo = "customcatcherrors@simplelists.com") => {
+export default async function sendEmail(subject, text, sendTo = "customcatcherrors@simplelists.com") {
   // Create a transporter object
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
-    secure: false, 
+    secure: false, // use TLS
     auth: {
       user: "childswebdev.ccerrors@gmail.com",
       pass: process.env.APP_PASSWORD,
     },
-    requireTLS: true, 
+    requireTLS: true,
   });
 
   // Set up the email options
   const mailOptions = {
     from: "childswebdev.ccerrors@gmail.com",
     to: sendTo,
-    subject: subject,
-    text: text,
+    subject,
+    text,
   };
 
   try {
@@ -32,6 +39,6 @@ module.exports = async (subject, text, sendTo = "customcatcherrors@simplelists.c
     console.log("Email sent: " + info.response);
   } catch (error) {
     console.error("Error sending email:", error);
-    throw error; // Ensure errors are propagated for the calling function to handle
+    throw error; // propagate error
   }
-};
+}
