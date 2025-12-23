@@ -1,5 +1,6 @@
 // src/pages/TodaysTotals.jsx
 import React, { useState, useEffect } from "react";
+import Controll from "../components/Controll";
 
 const TodaysTotals = () => {
   // ----------------- STATE -----------------
@@ -45,7 +46,9 @@ const TodaysTotals = () => {
 
   const handleDownload = async (urlSuffix, filename) => {
     try {
-      const response = await fetch(`${urlSuffix}?startDate=${date}&endDate=${date}`);
+      const response = await fetch(
+        `${urlSuffix}?startDate=${date}&endDate=${date}`
+      );
       const blob = await response.blob();
       const url = window.URL.createObjectURL(new Blob([blob]));
       const a = document.createElement("a");
@@ -60,22 +63,21 @@ const TodaysTotals = () => {
     }
   };
 
-  const totalItems = reportData.reduce((sum, [, count]) => sum + Number(count), 0);
-  const itemsPerHour = totalHours ? (totalItems / parseFloat(totalHours)).toFixed(1) : 0;
+  const totalItems = reportData.reduce(
+    (sum, [, count]) => sum + Number(count),
+    0
+  );
+  const itemsPerHour = totalHours
+    ? (totalItems / parseFloat(totalHours)).toFixed(1)
+    : 0;
 
   // ----------------- RENDER -----------------
   return (
     <div className="todays-totals-page">
       <section className="historical-summary">
         <h1 className="historical-summary__heading">In-Day Estimate</h1>
-        <button
-          className="historical-summary__back"
-          onClick={() => setReportData([])}
-        >
-          Back
-        </button>
 
-        <div className="historical-summary__data">
+        {/* <div className="historical-summary__data">
           {reportData.map(([name, count]) => (
             <div className="historical-summary__row" key={name}>
               <h4 className="historical-summary__product-name">{name}</h4>
@@ -84,36 +86,17 @@ const TodaysTotals = () => {
               </p>
             </div>
           ))}
-        </div>
+        </div> */}
       </section>
 
       <section className="report-generation">
-        <form className="report-generation__form" onSubmit={handleGenerateReport}>
-          <label htmlFor="FBA">FBA Items Completed:</label><br />
-          <input
-            type="text"
-            id="FBA"
-            value={FBA}
-            onChange={(e) => setFBA(e.target.value)}
-            required
-          /><br /><br />
-
-          <label htmlFor="totalHours">Estimated Total Hours:</label><br />
-          <input
-            type="text"
-            id="totalHours"
-            value={totalHours}
-            onChange={(e) => setTotalHours(e.target.value)}
-            required
-          /><br /><br />
-
-          <label htmlFor="dates">Date:</label><br />
-          <input
-            type="date"
-            id="dates"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          /><br /><br />
+        <form
+          className="report-generation__form"
+          onSubmit={handleGenerateReport}
+        >
+          <Controll htmlFor="FBA" label="FBA Items Completed:" type="text" value={FBA} onChange={(e) => setFBA(e.target.value)} />
+          <Controll htmlFor="totalHours" label="Estimated Total Hours:" type="text" onChange={(e) => setTotalHours(e.target.value)} />
+          <Controll htmlFor="dates" label="Date:" type="date" onChange={(e) => setDate(e.target.value)} />
 
           <input
             type="submit"
@@ -124,19 +107,27 @@ const TodaysTotals = () => {
 
         <button
           className="download-orders download-orders--orders"
-          onClick={() => handleDownload("/download-report", `Report - ${date}.xlsx`)}
+          onClick={() =>
+            handleDownload("/download-report", `Report - ${date}.xlsx`)
+          }
         >
           Download Orders for this timeframe
         </button>
 
         <button
           className="download-orders download-orders--ids"
-          onClick={() => handleDownload("/download-ids", `Order IDs - ${date}.xlsx`)}
+          onClick={() =>
+            handleDownload("/download-ids", `Order IDs - ${date}.xlsx`)
+          }
         >
           Download Order IDs for this timeframe
         </button>
 
-        {loading && <h1 className="report-generation__status">Report is generating, please wait...</h1>}
+        {loading && (
+          <h1 className="report-generation__status">
+            Report is generating, please wait...
+          </h1>
+        )}
 
         <div>
           <p>FBA: {FBA}</p>
