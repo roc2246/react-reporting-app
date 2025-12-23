@@ -70,3 +70,24 @@ export async function getHistoricalRange(startDate, endDate) {
     return { ...doc, itemsPerHour: iph === "Infinity" ? "N/A" : iph };
   });
 }
+
+
+export async function pullProductionDays() {
+  try {
+    const { db } = await connectToDB();
+    const collection = db.collection("daily-totals");
+
+    const field = "productionDay";
+
+    const productionDays = await collection.distinct(field);
+
+    if (productionDays.length > 0) {
+      return productionDays;
+    } else {
+      return { Error: "No documents available" };
+    }
+  } catch (err) {
+    console.error("Error while processing pullProductionDays:", err);
+    throw err; // propagate error to controllers
+  }
+}
