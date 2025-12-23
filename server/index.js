@@ -1,81 +1,60 @@
+// src/index.js
 import express from "express";
-import admin from "firebase-admin";
 import path from "path";
 import { fileURLToPath } from "url";
-import session from "express-session";
-import MongoStore from "connect-mongo";
-
-import router from "./routes/index.js";
-import middleware from "./middleware/index.js";
-
 import dotenv from "dotenv";
+import routes from "./routes/index.js"; 
+import * as models from "./models/index.js"; // Make sure this exports a function that connects to your DB
 
-// Convert __dirname for ES modules
+dotenv.config();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, "../config/.env") });
-
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Initialize Firebase admin
-(() => {
-  const serviceAccount = {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-  };
-
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://reportingapp---file-uploads.firebaseio.com",
-    storageBucket: "reportingapp---file-uploads.appspot.com",
-  });
-})();
-
-// Parse JSON request bodies
+// ----------------- MIDDLEWARE -----------------
 app.use(express.json());
-
-// Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
-// Configure express session
-app.use(
-  session({
-    secret: process.env.SECRET_KEY,
-    resave: true,
-    saveUninitialized: true,
-    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
-  })
-);
+// ----------------- API ROUTES -----------------
+// Prefix all API routes with /api to avoid conflicts with React routes
+app.use("/api", routes);
 
-// Protect restricted route
-app.get("/hours-and-fba.html", middleware.manageLogin, (req, res) => {
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
-  res.sendFile(path.join(__dirname, "views/hours-and-fba.html"));
+// ----------------- PRODUCTION REACT BUILD -----------------
+if (process.env.NODE_ENV === "production") {
+  // Serve React build
+  const buildPath = path.join(__dirname, "public");
+  app.use(express.static(buildPath));
+
+  // All other requests return the React index.html
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(buildPath, "index.html"));
+  });
+}
+
+// ----------------- ERROR HANDLING -----------------
+app.use((req, res) => {
+  res.status(404).json({ error: "Not Found" });
 });
 
-// Static files
-app.use(express.static(path.join(__dirname, "views")));
-
-// Routes
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "views/index.html"));
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "views/login.html"));
-});
+// ----------------- START SERVER -----------------
+async function startServer() {
+  try {
+    await models.connectToDB(); // ensure DB is connected before starting
+    app.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+}
 
-// Routers
-app.use("/", router);
-
-// Cron jobs
-import "./chron/index.js";
- 
-// Start the server
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+startServer();

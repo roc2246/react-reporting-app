@@ -40,3 +40,24 @@ export async function getQueDates(req, res) {
     res.status(500).send("Internal Server Error");
   }
 }
+
+export async function totalsOnFly(req, res, date) {
+  try {
+    // Use async/await to retrieve the stored orders
+    const documents = await models.queryOrdersByDate(date);
+
+    // Check if there are no orders for the specified date
+    if (documents.length === 0) {
+      return res.status(400).json({ error: "No Date" });
+    }
+
+    // Calculate the count using the getCount function
+    const count = getCount(documents, date);
+
+    // Return the count in the response
+    return res.json(count);
+  } catch (e) {
+    console.error("Error fetching orders:", e);
+    return res.status(500).send("Internal Server Error");
+  }
+}

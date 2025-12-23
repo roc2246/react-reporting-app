@@ -1,4 +1,4 @@
-module.exports = {
+export const regex = {
   customerNotes: function () {
     return {
       duplicate: /\((2|[3-9]|\d{2,})\)\s*[A-Z0-9\-]+(?=:)/g,

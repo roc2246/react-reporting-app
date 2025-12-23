@@ -1,8 +1,11 @@
-const express = require("express");
-const router = express.Router();
-const controllers = require("../../controllers/index");
-const middleware = require("../middleware/index");
+// /server/routes/index.js
+import express from "express";
+import * as controllers from "../controllers/index.js";
+// import middleware from "../middleware/index.js"; // optional, uncomment if needed
 
+const router = express.Router();
+
+// ----- AUTH -----
 router.post("/login", (req, res) => {
   controllers.login(req, res);
 });
@@ -11,19 +14,15 @@ router.post("/logout", (req, res) => {
   controllers.logout(req, res);
 });
 
+// ----- ORDERS -----
 router.get("/pull-orders", /* middleware.rateLimitMiddleware, */ (req, res) => {
   const page = req.query.page;
   controllers.archiveOrders(req, res, page);
 });
 
-// MODIFY LATER ONCE WEBHOOK HAS BEEN CONFIGURED
-router.post("/webhook/on-items-shipped", (req, res) => {
-  controllers.manageShipmentsNotified(req, res);
-});
-
 router.get("/recover-orders", /* middleware.rateLimitMiddleware, */ (req, res) => {
   const page = req.query.page;
-  const date = req.query.date
+  const date = req.query.date;
   controllers.recoverData(req, res, page, date);
 });
 
@@ -41,7 +40,7 @@ router.get("/data-on-fly", (req, res) => {
   controllers.totalsOnFly(req, res, date);
 });
 
-// MAY REMOVE LATER IF WEBSOCKET FUNCTIONALITY IS IMPLEMENTED
+// ----- SUMMARIES -----
 router.get("/summarized-range", (req, res) => {
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
@@ -72,6 +71,7 @@ router.get("/que-dates", (req, res) => {
   controllers.getQueDates(req, res);
 });
 
+// ----- DOWNLOADS -----
 router.get("/download-report", (req, res) => {
   const startDate = req.query.startDate;
   const endDate = req.query.endDate;
@@ -90,18 +90,22 @@ router.get("/download-range", (req, res) => {
   controllers.downloadHistoricalRange(req, res, startDate, endDate);
 });
 
+// ----- HOURS & FBA -----
 router.put("/load-hours", (req, res) => {
   controllers.loadHours(req, res);
 });
 
-// MIGHT USE FOR WEBSOCKET INSTEAD LATER
 router.put("/total-hours", (req, res) => {
   controllers.includeTotalHours(req, res);
 });
 
-// MIGHT USE FOR WEBSOCKET INSTEAD LATER
 router.put("/FBA", (req, res) => {
   controllers.includeFBA(req, res);
 });
 
-module.exports = router;
+// ----- WEBHOOK -----
+router.post("/webhook/on-items-shipped", (req, res) => {
+  controllers.manageShipmentsNotified(req, res);
+});
+
+export default router;

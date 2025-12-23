@@ -20,19 +20,21 @@ const TodaysTotals = () => {
   }, []);
 
   // ----------------- HANDLERS -----------------
+  // Utility to handle dev vs production backend URL
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:5000/api"; // dev server
+  }
+  return "/api"; // production
+};
+
   const handleGenerateReport = async (e) => {
     e.preventDefault();
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-    if (!dateRegex.test(date)) {
-      alert("Please enter a valid date in yyyy-mm-dd format");
-      return;
-    }
-
+ 
     setLoading(true);
 
     try {
-      const response = await fetch(`/data-on-fly/?date=${date}`);
+      const response = await fetch(`${getBaseUrl()}/data-on-fly?date=${date}`);
       const data = await response.json();
 
       const reportRows = Object.entries(data).filter(([key]) => key !== "_id");
@@ -77,7 +79,7 @@ const TodaysTotals = () => {
       <section className="historical-summary">
         <h1 className="historical-summary__heading">In-Day Estimate</h1>
 
-        {/* <div className="historical-summary__data">
+        <div className="historical-summary__data">
           {reportData.map(([name, count]) => (
             <div className="historical-summary__row" key={name}>
               <h4 className="historical-summary__product-name">{name}</h4>
@@ -86,7 +88,7 @@ const TodaysTotals = () => {
               </p>
             </div>
           ))}
-        </div> */}
+        </div> 
       </section>
 
       <section className="report-generation">

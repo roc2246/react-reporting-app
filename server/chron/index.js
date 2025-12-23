@@ -1,10 +1,11 @@
-const controllers = require("../../controllers/index");
-const models = require("../models/index");
-const utilities = require("../utilities/index");
+// /server/chron/index.js
 
-const cron = require("node-cron");
+import * as controllers from "../controllers/index.js";
+import * as models from "../models/index.js";
+import * as utilities from "../utilities/index.js";
+import cron from "node-cron";
 
-module.exports = async () => {
+export default async function initCron() {
   // FUNCTIONS
   function updateProductionDay(orders, shipmentIds, productionDay) {
     const shipmentOrderIdsSet = new Set(
@@ -21,40 +22,34 @@ module.exports = async () => {
     });
   }
 
-  // RUNS CHRON JOBS
+  // RUNS CRON JOBS
 
-  // Archieve orders
+  // Archive orders
   cron.schedule("*/30 * * * *", async () => {
     await controllers.manageArchives();
   });
 
-  // Archieve totals
+  // Archive totals
   cron.schedule("0 23 * * *", async () => {
-    const localRoute = "http://localhost:3000/data-from-day";
     const devRoute =
       "https://reporting-app-3194629a4aed.herokuapp.com/data-from-day";
-    fetch(devRoute)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(async (data) => {
-        await controllers.manageDailyTotals(data);
-        console.log(data);
-      })
-      .catch(async (error) => {
-        console.error("Error:", error);
-        await require("../email/index")("Error", error.toString());
-      });
+    try {
+      const response = await fetch(devRoute);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      await controllers.manageDailyTotals(data);
+      console.log(data);
+    } catch (error) {
+      console.error("Error:", error);
+      const { default: sendEmail } = await import("../email/index.js");
+      await sendEmail("Error", error.toString());
+    }
   });
 
   // Assigns production day to orders
   cron.schedule("*/5 * * * *", async () => {
     console.log("Order processing is running");
     try {
-      // Fetch orders
       const orders = await models.unprocessedOrderIds();
       const shipIds = {
         today: await models.shipIdsByDate(utilities.getProductionDay().today),
@@ -75,68 +70,44 @@ module.exports = async () => {
       );
     } catch (e) {
       console.error(`Error: ${e}`);
-      await require("../email/index")("Error", e.toString());
+      const { default: sendEmail } = await import("../email/index.js");
+      await sendEmail("Error", e.toString());
     }
     console.log("Order processing has finished");
   });
 
-  // Deletes mongo db records older than 60 days, but not summaries
+  // Deletes MongoDB records older than 60 days, but not summaries
   cron.schedule("0 20 * * *", async () => {
     try {
       await models.deleteData("orders");
       await models.deleteData("shipments-notified");
     } catch (error) {
       console.error(`Error: ${error}`);
-      await require("../email/index")("Error", error.toString());
+      const { default: sendEmail } = await import("../email/index.js");
+      await sendEmail("Error", error.toString());
     }
   });
 
-  // Adds data to order-que
-  // Chron for 5am
-  cron.schedule("0 5 * * *", async () => {
-    try {
-      await models.addQueTotal("fiveAM");
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      await require("../email/index")("Error", error.toString());
-    }
-  });
-  // Chron for 3pm
-  cron.schedule("0 15 * * *", async () => {
-    try {
-      await models.addQueTotal("threePM");
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      await require("../email/index")("Error", error.toString());
-    }
-  });
-  // Chron for 6pm
-  cron.schedule("0 18 * * *", async () => {
-    try {
-      await models.addQueTotal("sixPM");
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      await require("../email/index")("Error", error.toString());
-    }
-  });
-  // Chron for 9pm
-  cron.schedule("0 21 * * *", async () => {
-    try {
-      await models.addQueTotal("ninePM");
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      await require("../email/index")("Error", error.toString());
-    }
-  });
-  // Chron for 11pm
-  cron.schedule("0 23 * * *", async () => {
-    try {
-      await models.addQueTotal("elevenPM");
-    } catch (error) {
-      console.error(`Error: ${error}`);
-      await require("../email/index")("Error", error.toString());
-    }
-  });
+  // Adds data to order queue
+  const queSchedules = [
+    { time: "0 5 * * *", label: "fiveAM" },
+    { time: "0 15 * * *", label: "threePM" },
+    { time: "0 18 * * *", label: "sixPM" },
+    { time: "0 21 * * *", label: "ninePM" },
+    { time: "0 23 * * *", label: "elevenPM" },
+  ];
+
+  for (const schedule of queSchedules) {
+    cron.schedule(schedule.time, async () => {
+      try {
+        await models.addQueTotal(schedule.label);
+      } catch (error) {
+        console.error(`Error: ${error}`);
+        const { default: sendEmail } = await import("../email/index.js");
+        await sendEmail("Error", error.toString());
+      }
+    });
+  }
 
   // Sends morning count at 5am
   cron.schedule("0 5 * * *", async () => {
@@ -145,14 +116,12 @@ module.exports = async () => {
       const morningCount = await utilities.morningCounts();
       const email = "morningcounts@customcatch.simplelists.com";
 
-      await require("../email/index")(
-        `Counts for ${productionDay}`,
-        morningCount,
-        email
-      );
+      const { default: sendEmail } = await import("../email/index.js");
+      await sendEmail(`Counts for ${productionDay}`, morningCount, email);
     } catch (error) {
       console.error(`Error: ${error}`);
-      await require("../email/index")("Error", error.toString());
+      const { default: sendEmail } = await import("../email/index.js");
+      await sendEmail("Error", error.toString());
     }
   });
-};
+}

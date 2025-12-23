@@ -1,6 +1,6 @@
 let lastRequestTime = 0;
 
-function rateLimitMiddleware(req, res, next) {
+export function rateLimitMiddleware(req, res, next) {
   const currentTime = Date.now();
 
   if (currentTime - lastRequestTime < 5 * 60 * 1000) {
@@ -12,7 +12,7 @@ function rateLimitMiddleware(req, res, next) {
   next();
 }
 
-function manageLogin(req, res, next) {
+export function manageLogin(req, res, next) {
   const currentTime = Date.now();
 
   // Check if the user is logged in
@@ -42,4 +42,3 @@ function manageLogin(req, res, next) {
 }
 
 
-module.exports = { rateLimitMiddleware, manageLogin };
