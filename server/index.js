@@ -1,19 +1,23 @@
-const express = require("express");
-const admin = require("firebase-admin");
+import express from "express";
+import admin from "firebase-admin";
+import path from "path";
+import { fileURLToPath } from "url";
+import session from "express-session";
+import MongoStore from "connect-mongo";
+
+import router from "./routes/index.js";
+import middleware from "./middleware/index.js";
+
+import dotenv from "dotenv";
+
+// Convert __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, "../config/.env") });
 
 const app = express();
-const path = require("path");
-
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
-
-const router = require("./routes/index");
-const middleware = require("./middleware/index");
-
-// Imports config files
-require("dotenv").config({
-  path: path.join(__dirname, "../config/.env"),
-});
 
 // Initialize Firebase admin
 (() => {
@@ -26,7 +30,7 @@ require("dotenv").config({
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://reportingapp---file-uploads.firebaseio.com",
-    storageBucket: "reportingapp---file-uploads.appspot.com"
+    storageBucket: "reportingapp---file-uploads.appspot.com",
   });
 })();
 
@@ -36,50 +40,40 @@ app.use(express.json());
 // Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
-// Configures express session
+// Configure express session
 app.use(
   session({
     secret: process.env.SECRET_KEY,
     resave: true,
     saveUninitialized: true,
-    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }), // Replace with your MongoDB connection string
+    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
   })
 );
 
-// Apply the requireLogin middleware to protect the restricted page route
+// Protect restricted route
 app.get("/hours-and-fba.html", middleware.manageLogin, (req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
-  res.sendFile(__dirname + "/views/hours-and-fba.html");
+  res.sendFile(path.join(__dirname, "views/hours-and-fba.html"));
 });
 
-// Set up middleware for static files (CSS, JS, images, etc.)
-app.use(express.static("views"));
+// Static files
+app.use(express.static(path.join(__dirname, "views")));
 
-// Sets up route for home page
+// Routes
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/views/index.html");
+  res.sendFile(path.join(__dirname, "views/index.html"));
 });
 
-// Set up route for login page
 app.get("/login", (req, res) => {
-  res.sendFile(__dirname + "/views/login.html");
+  res.sendFile(path.join(__dirname, "views/login.html"));
 });
 
-
-
-// Sets up routers
+// Routers
 app.use("/", router);
 
-// Sets up recovery logic
-// require("./recovery/index")();
-
-// Sets up websocket functionality
-/* HOLD OFF ON WEBSOCKET FUNCTIONALITY */
-// require("./websocket/index")(app);
-
-// Sets up chron jobs
-require("./chron/index")();
-
+// Cron jobs
+import "./chron/index.js";
+ 
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
