@@ -20,31 +20,34 @@ const TodaysTotals = () => {
   }, []);
 
   // ----------------- HANDLERS -----------------
-  // Utility to handle dev vs production backend URL
-const getBaseUrl = () => {
-  if (process.env.NODE_ENV === "development") {
-    return "http://localhost:5000/api"; // dev server
+
+const handleGenerateReport = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    // Just use relative path like download buttons
+    const response = await fetch(`/api/data-on-fly?date=${date}`, {
+  method: "GET",
+  headers: {
+    "Accept": "application/json"
   }
-  return "/api"; // production
+});
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Server error: ${text}`);
+    }
+
+    const data = await response.json();
+    const reportRows = Object.entries(data).filter(([key]) => key !== "_id");
+    setReportData(reportRows);
+  } catch (err) {
+    console.error("Error fetching report:", err);
+  } finally {
+    setLoading(false);
+  }
 };
 
-  const handleGenerateReport = async (e) => {
-    e.preventDefault();
- 
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${getBaseUrl()}/data-on-fly?date=${date}`);
-      const data = await response.json();
-
-      const reportRows = Object.entries(data).filter(([key]) => key !== "_id");
-      setReportData(reportRows);
-    } catch (err) {
-      console.error("Error fetching report:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDownload = async (urlSuffix, filename) => {
     try {
@@ -110,7 +113,7 @@ const getBaseUrl = () => {
         <button
           className="download-orders download-orders--orders"
           onClick={() =>
-            handleDownload("/download-report", `Report - ${date}.xlsx`)
+            handleDownload("/api/download-report", `Report - ${date}.xlsx`)
           }
         >
           Download Orders for this timeframe
@@ -119,7 +122,7 @@ const getBaseUrl = () => {
         <button
           className="download-orders download-orders--ids"
           onClick={() =>
-            handleDownload("/download-ids", `Order IDs - ${date}.xlsx`)
+            handleDownload("/api/download-ids", `Order IDs - ${date}.xlsx`)
           }
         >
           Download Order IDs for this timeframe

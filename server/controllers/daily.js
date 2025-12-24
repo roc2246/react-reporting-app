@@ -41,8 +41,9 @@ export async function getQueDates(req, res) {
   }
 }
 
-export async function totalsOnFly(req, res, date) {
+export async function totalsOnFly(req, res) {
   try {
+    const date = req.query.date;
     // Use async/await to retrieve the stored orders
     const documents = await models.queryOrdersByDate(date);
 

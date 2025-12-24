@@ -36,8 +36,7 @@ router.get("/data-from-day", (req, res) => {
 });
 
 router.get("/data-on-fly", (req, res) => {
-  const date = req.query.date;
-  controllers.totalsOnFly(req, res, date);
+  controllers.totalsOnFly(req, res);
 });
 
 // ----- SUMMARIES -----
