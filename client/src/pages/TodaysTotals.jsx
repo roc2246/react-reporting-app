@@ -80,6 +80,7 @@ const TodaysTotals = () => {
     <div className="todays-totals-page">
       <h1 className="todays-totals-page__heading">In-Day Estimate</h1>
       <section className="report-generation">
+        {/* Form for generating report */}
         <form
           className="report-generation__form"
           onSubmit={handleGenerateReport}
@@ -106,11 +107,12 @@ const TodaysTotals = () => {
 
           <input
             type="submit"
-            className="report-generation__button"
+            className="btn report-generation__btn"
             value="Generate Report"
           />
         </form>
 
+        {/* Buttons for downloads */}
         <button
           className="download-orders download-orders--orders"
           onClick={() =>
@@ -119,7 +121,6 @@ const TodaysTotals = () => {
         >
           Download Orders for this timeframe
         </button>
-
         <button
           className="download-orders download-orders--ids"
           onClick={() =>
@@ -128,14 +129,16 @@ const TodaysTotals = () => {
         >
           Download Order IDs for this timeframe
         </button>
-
-        {loading && (
-          <h1 className="report-generation__status">
-            Report is generating, please wait...
-          </h1>
-        )}
       </section>
 
+      {/* Loading message for report generation */}
+      {loading && (
+        <h1 className="report-generation__status">
+          Report is generating, please wait...
+        </h1>
+      )}
+
+      {/* Historical Summary Report */}
       <section className="historical-summary">
         <div className="historical-summary__data">
           {reportData.map(([name, count]) => (
@@ -149,6 +152,7 @@ const TodaysTotals = () => {
         </div>
       </section>
 
+      {/* Corect Later */}
       <div>
         <p>FBA: {FBA}</p>
         <p>Total Hours: {totalHours}</p>
