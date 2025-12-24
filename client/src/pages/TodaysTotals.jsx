@@ -21,33 +21,32 @@ const TodaysTotals = () => {
 
   // ----------------- HANDLERS -----------------
 
-const handleGenerateReport = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleGenerateReport = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    // Just use relative path like download buttons
-    const response = await fetch(`/api/data-on-fly?date=${date}`, {
-  method: "GET",
-  headers: {
-    "Accept": "application/json"
-  }
-});
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Server error: ${text}`);
+    try {
+      // Just use relative path like download buttons
+      const response = await fetch(`/api/data-on-fly?date=${date}`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Server error: ${text}`);
+      }
+
+      const data = await response.json();
+      const reportRows = Object.entries(data).filter(([key]) => key !== "_id");
+      setReportData(reportRows);
+    } catch (err) {
+      console.error("Error fetching report:", err);
+    } finally {
+      setLoading(false);
     }
-
-    const data = await response.json();
-    const reportRows = Object.entries(data).filter(([key]) => key !== "_id");
-    setReportData(reportRows);
-  } catch (err) {
-    console.error("Error fetching report:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleDownload = async (urlSuffix, filename) => {
     try {
@@ -79,29 +78,31 @@ const handleGenerateReport = async (e) => {
   // ----------------- RENDER -----------------
   return (
     <div className="todays-totals-page">
-      <section className="historical-summary">
-        <h1 className="historical-summary__heading">In-Day Estimate</h1>
-
-        <div className="historical-summary__data">
-          {reportData.map(([name, count]) => (
-            <div className="historical-summary__row" key={name}>
-              <h4 className="historical-summary__product-name">{name}</h4>
-              <p className={`historical-summary__product-count--${name}`}>
-                {count}
-              </p>
-            </div>
-          ))}
-        </div> 
-      </section>
-
+      <h1 className="todays-totals-page__heading">In-Day Estimate</h1>
       <section className="report-generation">
         <form
           className="report-generation__form"
           onSubmit={handleGenerateReport}
         >
-          <Controll htmlFor="FBA" label="FBA Items Completed:" type="text" value={FBA} onChange={(e) => setFBA(e.target.value)} />
-          <Controll htmlFor="totalHours" label="Estimated Total Hours:" type="text" onChange={(e) => setTotalHours(e.target.value)} />
-          <Controll htmlFor="dates" label="Date:" type="date" onChange={(e) => setDate(e.target.value)} />
+          <Controll
+            htmlFor="FBA"
+            label="FBA Items Completed:"
+            type="text"
+            value={FBA}
+            onChange={(e) => setFBA(e.target.value)}
+          />
+          <Controll
+            htmlFor="totalHours"
+            label="Estimated Total Hours:"
+            type="text"
+            onChange={(e) => setTotalHours(e.target.value)}
+          />
+          <Controll
+            htmlFor="dates"
+            label="Date:"
+            type="date"
+            onChange={(e) => setDate(e.target.value)}
+          />
 
           <input
             type="submit"
@@ -133,14 +134,28 @@ const handleGenerateReport = async (e) => {
             Report is generating, please wait...
           </h1>
         )}
+      </section>
 
-        <div>
-          <p>FBA: {FBA}</p>
-          <p>Total Hours: {totalHours}</p>
-          <p>Total Items: {totalItems}</p>
-          <p>Items Per Hour: {itemsPerHour}</p>
+      <section className="historical-summary">
+        <div className="historical-summary__data">
+          {reportData.map(([name, count]) => (
+            <div className="historical-summary__row" key={name}>
+              <h4 className="historical-summary__product-name">{name}</h4>
+              <p className={`historical-summary__product-count--${name}`}>
+                {count}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
+
+      <div>
+        <p>FBA: {FBA}</p>
+        <p>Total Hours: {totalHours}</p>
+        <p>Total Items: {totalItems}</p>
+        <p>Items Per Hour: {itemsPerHour}</p>
+      </div>
+      
     </div>
   );
 };

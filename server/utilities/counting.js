@@ -1,4 +1,4 @@
-import * as regex from "../regex/index.js";
+import {regex} from "../regex/index.js";
 import { itemsPerHour as calculateItemsPerHour, getProductionDay as productionDayHelper } from "./index.js";
 import sendEmail from "../email/index.js";
 
