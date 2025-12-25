@@ -1,6 +1,8 @@
 // src/pages/TodaysTotals.jsx
 import React, { useState, useEffect } from "react";
 import Controll from "../components/Controll";
+import TotalsReport from "../sections/TotalsReport";
+import LoadingMssg from "../components/LoadingMssg";
 
 const TodaysTotals = () => {
   // ----------------- STATE -----------------
@@ -131,26 +133,9 @@ const TodaysTotals = () => {
         </button>
       </section>
 
-      {/* Loading message for report generation */}
-      {loading && (
-        <h1 className="report-generation__status">
-          Report is generating, please wait...
-        </h1>
-      )}
+      <LoadingMssg bool={loading}/>
 
-      {/* Historical Summary Report */}
-      <section className="historical-summary">
-        <div className="historical-summary__data">
-          {reportData.map(([name, count]) => (
-            <div className="historical-summary__row" key={name}>
-              <h4 className="historical-summary__product-name">{name}</h4>
-              <p className={`historical-summary__product-count--${name}`}>
-                {count}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <TotalsReport data={reportData} />
 
       {/* Corect Later */}
       <div>
@@ -159,7 +144,6 @@ const TodaysTotals = () => {
         <p>Total Items: {totalItems}</p>
         <p>Items Per Hour: {itemsPerHour}</p>
       </div>
-      
     </div>
   );
 };
