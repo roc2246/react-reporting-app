@@ -1,5 +1,6 @@
 // src/pages/HistoricalRange.jsx
 import React, { useState, useEffect } from "react";
+import LoadingMssg from "../components/LoadingMssg";
 
 const HistoricalRange = () => {
   // ----------------- STATE -----------------
@@ -137,10 +138,8 @@ const HistoricalRange = () => {
         <button className="historical-range__generate" onClick={handleGenerateReport}>
           Generate Report
         </button>
-
-        {loading && (
-          <h1 className="historical-range__status">Report is generating, please wait...</h1>
-        )}
+        
+        <LoadingMssg bool={loading} />
 
         {reportData.length > 0 && (
           <table className="historical-range__report">
