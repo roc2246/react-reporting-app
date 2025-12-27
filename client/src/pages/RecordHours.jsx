@@ -1,5 +1,6 @@
 // src/pages/RecordHours.jsx
 import React, { useEffect, useState } from "react";
+import Controll from "../components/Controll";
 
 const RecordHours = () => {
   const [dates, setDates] = useState([]);
@@ -29,7 +30,9 @@ const RecordHours = () => {
   // Retrieve previous data for FBA or hours
   const fetchPreviousData = async (type) => {
     try {
-      const res = await fetch(`/historical-range?startDate=${selectedDate}&endDate=${selectedDate}`);
+      const res = await fetch(
+        `/historical-range?startDate=${selectedDate}&endDate=${selectedDate}`
+      );
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
       return data[0][type];
@@ -76,7 +79,10 @@ const RecordHours = () => {
       const res = await fetch("/total-hours", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ totalHours: parseFloat(totalHours), date: selectedDate }),
+        body: JSON.stringify({
+          totalHours: parseFloat(totalHours),
+          date: selectedDate,
+        }),
       });
       const data = await res.json();
       alert(`Total hours updated to ${totalHours} for ${selectedDate}`);
@@ -104,7 +110,10 @@ const RecordHours = () => {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("/logout", { method: "POST", headers: { "Content-Type": "application/json" } });
+      const res = await fetch("/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
       if (res.ok) window.location.href = "/login.html";
     } catch (err) {
       console.error(err);
@@ -115,7 +124,10 @@ const RecordHours = () => {
     <div>
       <section className="dates">
         <h1>Select Date</h1>
-        <select value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}>
+        <select
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        >
           {dates.map((date) => (
             <option key={date} value={date}>
               {date}
@@ -125,32 +137,47 @@ const RecordHours = () => {
       </section>
 
       <section className="FBA">
-        <h1>FBA</h1>
         <form onSubmit={handleFBAUpdate}>
-          <input type="number" value={FBA} onChange={(e) => setFBA(e.target.value)} required />
+          <Controll
+            htmlFor={"FBA"}
+            label={"FBA Items"}
+            type={"number"}
+            onChange={(e) => setFBA(e.target.value)}
+          />
           <input type="submit" value="Submit" />
         </form>
-        {loadingFBA && <h1 className="FBA__status">FBA value is updating, please wait...</h1>}
+        <LoadingMssg bool={loadingFBA} />
       </section>
 
       <section className="total-hours">
-        <h1>Total Hours</h1>
         <form onSubmit={handleHoursUpdate}>
-          <input type="text" value={totalHours} onChange={(e) => setTotalHours(e.target.value)} required />
+          <Controll
+            htmlFor={"totalHours"}
+            label={"Total Hours"}
+            onChange={(e) => setTotalHours(e.target.value)}
+          />
+
           <input type="submit" value="Submit" />
         </form>
-        {loadingHours && <h1 className="total-hours__status">Total hours are updating, please wait...</h1>}
+        <LoadingMssg bool={loadingHours} />
       </section>
 
       <section className="load-hours">
         <h1>Load Hours</h1>
         <form onSubmit={handleFileUpload}>
-          <input type="file" accept=".xlsx,.xls" onChange={(e) => setFile(e.target.files[0])} required />
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={(e) => setFile(e.target.files[0])}
+            required
+          />
           <input type="submit" value="Upload Hours" />
         </form>
       </section>
 
-      <button className="logout" onClick={handleLogout}>Logout</button>
+      <button className="logout" onClick={handleLogout}>
+        Logout
+      </button>
     </div>
   );
 };
