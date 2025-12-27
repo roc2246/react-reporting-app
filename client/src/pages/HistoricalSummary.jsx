@@ -1,5 +1,6 @@
 // src/pages/HistoricalSummary.jsx
 import React, { useState, useEffect } from "react";
+import Options from "../components/OPtions";
 
 const HistoricalSummary = () => {
   // ----------------- STATE -----------------
@@ -44,7 +45,9 @@ const HistoricalSummary = () => {
     setShowDropdown(false);
 
     try {
-      const res = await fetch(`/summarized-range?startDate=${startDate}&endDate=${endDate}`);
+      const res = await fetch(
+        `/summarized-range?startDate=${startDate}&endDate=${endDate}`
+      );
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const dailyTotals = await res.json();
 
@@ -79,7 +82,9 @@ const HistoricalSummary = () => {
       });
 
       grandTotals.totalHours = parseFloat(grandTotals.totalHours).toFixed(1);
-      grandTotals.itemsPerHour = (grandTotals.totalItems / grandTotals.totalHours).toFixed(1);
+      grandTotals.itemsPerHour = (
+        grandTotals.totalItems / grandTotals.totalHours
+      ).toFixed(1);
 
       setReportData(createRowData(grandTotals));
     } catch (err) {
@@ -146,11 +151,7 @@ const HistoricalSummary = () => {
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           >
-            {productionDates.map((date) => (
-              <option key={date} value={date}>
-                {date}
-              </option>
-            ))}
+            <Options data={productionDates} />
           </select>
           <br />
           <br />
@@ -160,11 +161,7 @@ const HistoricalSummary = () => {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           >
-            {productionDates.map((date) => (
-              <option key={date} value={date}>
-                {date}
-              </option>
-            ))}
+            <Options data={productionDates} />
           </select>
           <br />
           <br />

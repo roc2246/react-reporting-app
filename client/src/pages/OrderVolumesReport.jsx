@@ -4,6 +4,7 @@ import LoadingMssg from "../components/LoadingMssg";
 import Heading from "../table/Heading";
 import Data from "../table/Data";
 import RowHeading from "../table/RowHeading";
+import Options from "../components/OPtions";
 
 const OrderVolumesReport = () => {
   const [dates, setDates] = useState([]);
@@ -107,19 +108,17 @@ const OrderVolumesReport = () => {
           onChange={(e) => setDayOfWeek(e.target.value)}
           className="order-volumes-report__day-of-week"
         >
-          {[
-            "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
-          ].map((day) => (
-            <option key={day} value={day}>
-              {day.charAt(0).toUpperCase() + day.slice(1)}
-            </option>
-          ))}
+          <Options
+            data={[
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ]}
+          />
         </select>
       </label>
       <br />
@@ -132,11 +131,7 @@ const OrderVolumesReport = () => {
           onChange={(e) => setStartDate(e.target.value)}
           className="order-volumes-report__start"
         >
-          {dates.map((date) => (
-            <option key={date} value={date}>
-              {date}
-            </option>
-          ))}
+          <Options data={dates} />
         </select>
       </label>
       <br />

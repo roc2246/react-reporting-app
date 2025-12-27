@@ -1,6 +1,7 @@
 // src/pages/HistoricalRange.jsx
 import React, { useState, useEffect } from "react";
 import LoadingMssg from "../components/LoadingMssg";
+import Options from "../components/OPtions";
 
 const HistoricalRange = () => {
   // ----------------- STATE -----------------
@@ -33,7 +34,12 @@ const HistoricalRange = () => {
   // ----------------- HELPERS -----------------
   const formatDate = (inputDate) => {
     const dateObj = new Date(inputDate + "T00:00:00-05:00");
-    const options = { weekday: "long", month: "numeric", day: "numeric", timeZone: "America/New_York" };
+    const options = {
+      weekday: "long",
+      month: "numeric",
+      day: "numeric",
+      timeZone: "America/New_York",
+    };
     const formatted = dateObj.toLocaleDateString("en-US", options);
     const [weekday, dateStr] = formatted.split(",");
     const [month, day] = dateStr.trim().split(" ");
@@ -49,7 +55,9 @@ const HistoricalRange = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`/historical-range?startDate=${startDate}&endDate=${endDate}`);
+      const res = await fetch(
+        `/historical-range?startDate=${startDate}&endDate=${endDate}`
+      );
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
       setReportData(data);
@@ -66,7 +74,9 @@ const HistoricalRange = () => {
       return;
     }
     try {
-      const res = await fetch(`/download-range?startDate=${startDate}&endDate=${endDate}`);
+      const res = await fetch(
+        `/download-range?startDate=${startDate}&endDate=${endDate}`
+      );
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -82,16 +92,22 @@ const HistoricalRange = () => {
     }
   };
 
-  const tableKeys = reportData.length > 0 ? Object.keys(reportData[0]).slice(2) : [];
+  const tableKeys =
+    reportData.length > 0 ? Object.keys(reportData[0]).slice(2) : [];
 
   const calculateGrandTotals = (cat) => {
     if (reportData.length === 0) return "N/A";
     const total = reportData.reduce((sum, row) => sum + (row[cat] ?? 0), 0);
     if (cat === "totalHours") return total.toFixed(1);
     if (cat === "itemsPerHour") {
-      const hours = reportData.reduce((sum, row) => sum + (row.totalHours ?? 0), 0);
+      const hours = reportData.reduce(
+        (sum, row) => sum + (row.totalHours ?? 0),
+        0
+      );
       if (hours === 0) return "N/A";
-      return (reportData.reduce((sum, row) => sum + (row.totalItems ?? 0), 0) / hours).toFixed(1);
+      return (
+        reportData.reduce((sum, row) => sum + (row.totalItems ?? 0), 0) / hours
+      ).toFixed(1);
     }
     return total;
   };
@@ -109,15 +125,12 @@ const HistoricalRange = () => {
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           >
-            {productionDates.map((date) => (
-              <option key={date} value={date}>
-                {date} | {new Date(date).toLocaleDateString("en-US", { weekday: "long", timeZone: "America/New_York" })}
-              </option>
-            ))}
+            <Options data={productionDates} />
           </select>
         </label>
 
-        <br /><br />
+        <br />
+        <br />
 
         <label>
           End:
@@ -126,19 +139,19 @@ const HistoricalRange = () => {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           >
-            {productionDates.map((date) => (
-              <option key={date} value={date}>
-                {date} | {new Date(date).toLocaleDateString("en-US", { weekday: "long", timeZone: "America/New_York" })}
-              </option>
-            ))}
+            <Options data={productionDates} />
           </select>
         </label>
 
-        <br /><br />
-        <button className="historical-range__generate" onClick={handleGenerateReport}>
+        <br />
+        <br />
+        <button
+          className="historical-range__generate"
+          onClick={handleGenerateReport}
+        >
           Generate Report
         </button>
-        
+
         <LoadingMssg bool={loading} />
 
         {reportData.length > 0 && (
@@ -147,7 +160,9 @@ const HistoricalRange = () => {
               <tr>
                 <th></th>
                 {reportData.map((day) => (
-                  <th key={day.productionDay}>{formatDate(day.productionDay)}</th>
+                  <th key={day.productionDay}>
+                    {formatDate(day.productionDay)}
+                  </th>
                 ))}
                 <th>{reportData.length} Day Total</th>
               </tr>
@@ -155,15 +170,24 @@ const HistoricalRange = () => {
             <tbody>
               {tableKeys.map((key) => (
                 <tr key={key} className="table-category">
-                  <th className={`historical-range__table-category-name--${key}`}>
+                  <th
+                    className={`historical-range__table-category-name--${key}`}
+                  >
                     {key.charAt(0).toUpperCase() + key.slice(1)}
                   </th>
                   {reportData.map((row, idx) => (
-                    <td key={idx} className={`historical-range__table-category-value--${key}`}>
-                      {key === "totalHours" ? row[key]?.toFixed(1) ?? "N/A" : row[key] ?? "N/A"}
+                    <td
+                      key={idx}
+                      className={`historical-range__table-category-value--${key}`}
+                    >
+                      {key === "totalHours"
+                        ? row[key]?.toFixed(1) ?? "N/A"
+                        : row[key] ?? "N/A"}
                     </td>
                   ))}
-                  <td className={`historical-range__table-category-value--${key}`}>
+                  <td
+                    className={`historical-range__table-category-value--${key}`}
+                  >
                     {calculateGrandTotals(key)}
                   </td>
                 </tr>
