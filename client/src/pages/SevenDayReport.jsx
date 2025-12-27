@@ -1,5 +1,8 @@
 // src/pages/SevenDayVolumeReport.jsx
 import React, { useEffect, useState } from "react";
+import Heading from "../table/Heading";
+import Data from "../table/Data";
+import RowHeading from "../table/RowHeading";
 
 const SevenDayVolumeReport = () => {
   const [data, setData] = useState([]);
@@ -43,7 +46,9 @@ const SevenDayVolumeReport = () => {
   };
 
   if (loading) {
-    return <h1 className="_7-day-volumes-report__status">Loading, Please Wait...</h1>;
+    return (
+      <h1 className="_7-day-volumes-report__status">Loading, Please Wait...</h1>
+    );
   }
 
   if (!data || data.length === 0) {
@@ -55,34 +60,20 @@ const SevenDayVolumeReport = () => {
   // ----------------- RENDER -----------------
   return (
     <section className="_7-day-volumes-report">
-      <h1 className="_7-day-volumes-report__heading">7 Day Historical Order Que</h1>
+      <h1 className="_7-day-volumes-report__heading">
+        7 Day Historical Order Que
+      </h1>
       <table className="_7-day-volumes-report__report">
-        <thead>
-          <tr className="_7-day-volumes-report__table-headings">
-            <th className="_7-day-volumes-report__table-heading"></th>
-            {data.map((day, idx) => (
-              <th key={idx} className="_7-day-volumes-report__table-heading">
-                {day.productionDay}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        <Heading data={data} className="_7-day-volumes-report" />
         <tbody>
           {keys.map((key) => (
             <tr key={key} className="_7-day-volumes-report__table-category">
-              <th
-                className={`_7-day-volumes-report__table-category-name--${key}`}
-              >
-                {getRowHeading(key)}
-              </th>
-              {data.map((day, idx) => (
-                <td
-                  key={idx}
-                  className={`_7-day-volumes-report__table-category-value--${key}`}
-                >
-                  {day[key]}
-                </td>
-              ))}
+              <RowHeading
+                className={"_7-day-volumes-report"}
+                key={key}
+                getRowHeading={getRowHeading(key)}
+              />
+              <Data data={data} className="_7-day-volumes-report" key={key} />
             </tr>
           ))}
         </tbody>

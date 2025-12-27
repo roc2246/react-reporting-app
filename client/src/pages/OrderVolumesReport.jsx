@@ -1,6 +1,9 @@
 // src/pages/OrderVolumesReport.jsx
 import React, { useEffect, useState } from "react";
 import LoadingMssg from "../components/LoadingMssg";
+import Heading from "../table/Heading";
+import Data from "../table/Data";
+import RowHeading from "../table/RowHeading";
 
 const OrderVolumesReport = () => {
   const [dates, setDates] = useState([]);
@@ -11,16 +14,6 @@ const OrderVolumesReport = () => {
   const [loading, setLoading] = useState(false);
 
   // ------------- HELPERS -----------------
-  const formatDate = (inputDate) => {
-    const options = {
-      month: "numeric",
-      day: "numeric",
-      year: "numeric",
-      timeZone: "America/New_York",
-    };
-    const dateObj = new Date(inputDate + "T00:00:00-05:00");
-    return dateObj.toLocaleDateString("en-US", options);
-  };
 
   const getRowHeading = (catName) => {
     switch (catName) {
@@ -52,11 +45,11 @@ const OrderVolumesReport = () => {
       saturday: 6,
     };
     const target = daysMap[targetDay.toLowerCase()];
-    const d = new Date(date);
-    let diff = target - d.getDay();
+    const day = new Date(date);
+    let diff = target - day.getDay();
     if (diff <= 0) diff += 7;
-    d.setDate(d.getDate() + diff);
-    return d.toISOString().split("T")[0];
+    day.setDate(day.getDate() + diff);
+    return day.toISOString().split("T")[0];
   };
 
   // ------------- FETCH DATES -----------------
@@ -176,32 +169,16 @@ const OrderVolumesReport = () => {
       <LoadingMssg bool={loading} />
       {data.length > 0 && (
         <table className="order-volumes-report__report">
-          <thead>
-            <tr className="order-volumes-report__table-headings">
-              <th className="order-volumes-report__table-heading"></th>
-              {data.map((d, idx) => (
-                <th key={idx} className="order-volumes-report__table-heading">
-                  {formatDate(d.productionDay)}
-                </th>
-              ))}
-            </tr>
-          </thead>
+          <Heading data={data} className="order-volumes-report" />
           <tbody>
             {keys.map((key) => (
               <tr key={key} className="order-volumes-report__table-category">
-                <th
-                  className={`order-volumes-report__table-category-name--${key}`}
-                >
-                  {getRowHeading(key)}
-                </th>
-                {data.map((d, idx) => (
-                  <td
-                    key={idx}
-                    className={`order-volumes-report__table-category-value--${key}`}
-                  >
-                    {d[key]}
-                  </td>
-                ))}
+                <RowHeading
+                  className={"order-volumes-report"}
+                  key={key}
+                  getRowHeading={getRowHeading(key)}
+                />
+                <Data data={data} className="order-volumes-report" key={key} />
               </tr>
             ))}
           </tbody>
