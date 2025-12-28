@@ -1,11 +1,9 @@
-// src/pages/HistoricalRange.jsx
 import React, { useState, useEffect } from "react";
 import LoadingMssg from "../components/LoadingMssg";
-import Options from "../components/OPtions";
+import Select from "../components/Select";
 import * as fetchLib from "../utils/fetch-library";
 
 const HistoricalRange = () => {
-  // ----------------- STATE -----------------
   const [productionDates, setProductionDates] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -13,7 +11,6 @@ const HistoricalRange = () => {
   const [loading, setLoading] = useState(false);
 
   // ----------------- EFFECTS -----------------
-  // Fetch available production dates on mount
   useEffect(() => {
     const fetchProductionDates = async () => {
       try {
@@ -30,7 +27,6 @@ const HistoricalRange = () => {
     fetchProductionDates();
   }, []);
 
-  // ----------------- HELPERS -----------------
   const formatDate = (inputDate) => {
     const dateObj = new Date(inputDate + "T00:00:00-05:00");
     const options = {
@@ -50,9 +46,7 @@ const HistoricalRange = () => {
       alert("Please select appropriate range");
       return;
     }
-
     setLoading(true);
-
     try {
       const data = await fetchLib.fetchJSON(
         `/historical-range?startDate=${startDate}&endDate=${endDate}`
@@ -107,39 +101,33 @@ const HistoricalRange = () => {
     return total;
   };
 
-  // ----------------- RENDER -----------------
   return (
     <div className="historical-range-page">
       <section className="historical-range">
         <h1 className="historical-range__heading">Generate Historical Range</h1>
 
-        <label>
-          Start:
-          <select
-            className="historical-range__start"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          >
-            <Options data={productionDates} />
-          </select>
-        </label>
+        <Select
+          label="Start:"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          options={productionDates}
+          className="historical-range__start"
+        />
 
         <br />
         <br />
 
-        <label>
-          End:
-          <select
-            className="historical-range__end"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          >
-            <Options data={productionDates} />
-          </select>
-        </label>
+        <Select
+          label="End:"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          options={productionDates}
+          className="historical-range__end"
+        />
 
         <br />
         <br />
+
         <button
           className="historical-range__generate"
           onClick={handleGenerateReport}
@@ -155,9 +143,7 @@ const HistoricalRange = () => {
               <tr>
                 <th></th>
                 {reportData.map((day) => (
-                  <th key={day.productionDay}>
-                    {formatDate(day.productionDay)}
-                  </th>
+                  <th key={day.productionDay}>{formatDate(day.productionDay)}</th>
                 ))}
                 <th>{reportData.length} Day Total</th>
               </tr>

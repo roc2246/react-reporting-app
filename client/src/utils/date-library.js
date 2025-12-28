@@ -17,3 +17,21 @@ export function getTodayInTimezone(timezoneOffsetMinutes = 0) {
   now.setMinutes(now.getMinutes() - localOffset + timezoneOffsetMinutes);
   return now.toISOString().split("T")[0]; // YYYY-MM-DD
 }
+
+export function closestDayOfWeek(dateString, targetDay) {
+  const daysMap = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+  };
+  const target = daysMap[targetDay.toLowerCase()];
+  const day = new Date(dateString + "T00:00:00-05:00"); // EST base
+  let diff = target - day.getDay();
+  if (diff <= 0) diff += 7;
+  day.setDate(day.getDate() + diff);
+  return day.toISOString().split("T")[0]; // YYYY-MM-DD
+}

@@ -1,11 +1,11 @@
-// src/pages/OrderVolumesReport.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LoadingMssg from "../components/LoadingMssg";
 import Heading from "../table/Heading";
 import Data from "../table/Data";
 import RowHeading from "../table/RowHeading";
-import Options from "../components/OPtions";
+import Select from "../components/Select";
 import * as fetchLib from "../utils/fetch-library";
+import * as dateLib from "../utils/date-library";
 
 const OrderVolumesReport = () => {
   const [dates, setDates] = useState([]);
@@ -15,122 +15,106 @@ const OrderVolumesReport = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ------------- HELPERS -----------------
+  const weekdays = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
 
-  const closestDayOfWeek = (date, targetDay) => {
-    const daysMap = {
-      sunday: 0,
-      monday: 1,
-      tuesday: 2,
-      wednesday: 3,
-      thursday: 4,
-      friday: 5,
-      saturday: 6,
-    };
-    const target = daysMap[targetDay.toLowerCase()];
-    const day = new Date(date);
-    let diff = target - day.getDay();
-    if (diff <= 0) diff += 7;
-    day.setDate(day.getDate() + diff);
-    return day.toISOString().split("T")[0];
-  };
-
-  // ------------- FETCH DATES -----------------
+  // ----------------- FETCH DATES -----------------
   useEffect(() => {
     const fetchDates = async () => {
       try {
         const json = await fetchLib.fetchJSON("/que-dates");
         setDates(json.reverse());
-        setStartDate(json[json.length - 1]);
-        setEndDate(json[0]);
+        if (json.length > 0) {
+          setStartDate(json[json.length - 1]);
+          setEndDate(json[0]);
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching dates:", err);
       }
     };
     fetchDates();
   }, []);
 
-  // ------------- FETCH REPORT -----------------
+  // ----------------- GENERATE REPORT -----------------
   const generateReport = async () => {
     if (!startDate || !endDate) return;
-    const adjustedStart = closestDayOfWeek(startDate, dayOfWeek);
+
+    const adjustedStart = dateLib.closestDayOfWeek(startDate, dayOfWeek);
     setLoading(true);
+
     try {
-      const json = await fetchLib.fetchJSON(
-        `/order-volumes-report?startDate=${adjustedStart}&endDate=${endDate}`
-      );
+      const url = `/order-volumes-report?startDate=${adjustedStart}&endDate=${endDate}`;
+      const json = await fetchLib.fetchJSON(url);
       setData(json);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching report:", err);
       setData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // ------------- RENDER -----------------
+  // ----------------- HELPERS -----------------
+  const getRowHeading = (catName) => {
+    switch (catName) {
+      case "fiveAM":
+        return "Orders @ 5 am";
+      case "threePM":
+        return "Orders @ 3 pm";
+      case "sixPM":
+        return "Orders @ 6 pm";
+      case "ninePM":
+        return "Orders @ 9 pm";
+      case "elevenPM":
+        return "Orders @ 11 pm";
+      case "productionHours":
+        return "Production Hours";
+      default:
+        return catName;
+    }
+  };
+
   const keys = data[0]
-    ? Object.keys(data[0]).filter((k) => k !== "productionDay")
+    ? Object.keys(data[0]).filter((key) => key !== "productionDay")
     : [];
 
+  // ----------------- RENDER -----------------
   return (
     <section className="order-volumes-report">
       <h1 className="order-volumes-report__heading">
         Generate Historical Range Report
       </h1>
 
-      <label>
-        Day of Week:
-        <select
-          value={dayOfWeek}
-          onChange={(e) => setDayOfWeek(e.target.value)}
-          className="order-volumes-report__day-of-week"
-        >
-          <Options
-            data={[
-              "Sunday",
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-            ]}
-          />
-        </select>
-      </label>
-      <br />
-      <br />
+      <Select
+        label="Day of Week:"
+        value={dayOfWeek}
+        onChange={(e) => setDayOfWeek(e.target.value)}
+        options={weekdays.map((day) => day.charAt(0).toUpperCase() + day.slice(1))}
+        className="order-volumes-report__day-of-week"
+      />
 
-      <label>
-        Report Start Date:
-        <select
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="order-volumes-report__start"
-        >
-          <Options data={dates} />
-        </select>
-      </label>
-      <br />
-      <br />
+      <Select
+        label="Report Start Date:"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        options={dates}
+        className="order-volumes-report__start"
+      />
 
-      <label>
-        Report End Date:
-        <select
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="order-volumes-report__end"
-        >
-          {dates.map((date) => (
-            <option key={date} value={date}>
-              {date}
-            </option>
-          ))}
-        </select>
-      </label>
-      <br />
-      <br />
+      <Select
+        label="Report End Date:"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        options={dates}
+        className="order-volumes-report__end"
+      />
 
       <button
         onClick={generateReport}
@@ -140,13 +124,18 @@ const OrderVolumesReport = () => {
       </button>
 
       <LoadingMssg bool={loading} />
+
       {data.length > 0 && (
         <table className="order-volumes-report__report">
           <Heading data={data} className="order-volumes-report" />
           <tbody>
             {keys.map((key) => (
               <tr key={key} className="order-volumes-report__table-category">
-                <RowHeading className={"order-volumes-report"} key={key} />
+                <RowHeading
+                  className="order-volumes-report"
+                  key={key}
+                  getRowHeading={getRowHeading(key)}
+                />
                 <Data data={data} className="order-volumes-report" key={key} />
               </tr>
             ))}

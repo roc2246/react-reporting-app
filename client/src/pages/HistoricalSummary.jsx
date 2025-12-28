@@ -1,6 +1,6 @@
-// src/pages/HistoricalSummary.jsx
-import React, { useState, useEffect } from "react";
-import Options from "../components/OPtions";
+import { useState, useEffect } from "react";
+import Select from "../components/Select";
+import LoadingMssg from "../components/LoadingMssg";
 import * as fetchLib from "../utils/fetch-library";
 
 const HistoricalSummary = () => {
@@ -10,13 +10,14 @@ const HistoricalSummary = () => {
   const [endDate, setEndDate] = useState("");
   const [reportData, setReportData] = useState([]);
   const [showDropdown, setShowDropdown] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // ----------------- EFFECTS -----------------
   useEffect(() => {
     const fetchProductionDates = async () => {
       try {
         const data = await fetchLib.fetchJSON("/production-dates");
-        setProductionDates(data);
+        setProductionDates(data.reverse());
         if (data.length > 0) {
           setStartDate(data[0]);
           setEndDate(data[data.length - 1]);
@@ -29,26 +30,22 @@ const HistoricalSummary = () => {
   }, []);
 
   // ----------------- HELPERS -----------------
-  const createRowData = (grandTotals) => {
-    return Object.entries(grandTotals).map(([key, value]) => ({
-      key,
-      value,
-    }));
-  };
+  const createRowData = (grandTotals) =>
+    Object.entries(grandTotals).map(([key, value]) => ({ key, value }));
 
   const handleGenerateReport = async () => {
     if (new Date(endDate) < new Date(startDate)) {
       alert("Please enter a valid range");
       return;
     }
+
     setShowDropdown(false);
+    setLoading(true);
 
     try {
-      const res = await fetch(
+      const dailyTotals = await fetchLib.fetchJSON(
         `/summarized-range?startDate=${startDate}&endDate=${endDate}`
       );
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const dailyTotals = await res.json();
 
       const grandTotals = {
         from: `${startDate} to ${endDate}`,
@@ -67,17 +64,17 @@ const HistoricalSummary = () => {
       };
 
       dailyTotals.forEach((day) => {
-        grandTotals.items += parseInt(day.items);
-        grandTotals.hats += parseInt(day.hats);
-        grandTotals.bibs += parseInt(day.bibs);
-        grandTotals.miniBears += parseInt(day.miniBears);
-        grandTotals.giftBaskets += parseInt(day.giftBaskets);
-        grandTotals.FBA += parseInt(day.FBA);
-        grandTotals.towels += parseInt(day.towels);
-        grandTotals.potHolders += parseInt(day.potHolders);
-        grandTotals.bandanas += parseInt(day.bandanas);
-        grandTotals.totalItems += parseInt(day.totalItems);
-        grandTotals.totalHours += day.totalHours;
+        grandTotals.items += parseInt(day.items || 0);
+        grandTotals.hats += parseInt(day.hats || 0);
+        grandTotals.bibs += parseInt(day.bibs || 0);
+        grandTotals.miniBears += parseInt(day.miniBears || 0);
+        grandTotals.giftBaskets += parseInt(day.giftBaskets || 0);
+        grandTotals.FBA += parseInt(day.FBA || 0);
+        grandTotals.towels += parseInt(day.towels || 0);
+        grandTotals.potHolders += parseInt(day.potHolders || 0);
+        grandTotals.bandanas += parseInt(day.bandanas || 0);
+        grandTotals.totalItems += parseInt(day.totalItems || 0);
+        grandTotals.totalHours += parseFloat(day.totalHours || 0);
       });
 
       grandTotals.totalHours = parseFloat(grandTotals.totalHours).toFixed(1);
@@ -88,6 +85,8 @@ const HistoricalSummary = () => {
       setReportData(createRowData(grandTotals));
     } catch (err) {
       console.error("Error generating report:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,15 +95,17 @@ const HistoricalSummary = () => {
       alert("Please enter a valid range");
       return;
     }
+
     const url =
       type === "report"
         ? `/download-report?startDate=${startDate}&endDate=${endDate}`
         : `/download-ids?startDate=${startDate}&endDate=${endDate}`;
+
     try {
       const blob = await fetchLib.fetchBlob(url);
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
-      link.download = `Report - ${startDate}-to-${endDate}.xlsx`;
+      link.download = `Report-${startDate}-to-${endDate}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -123,70 +124,71 @@ const HistoricalSummary = () => {
   return (
     <div className="historical-summary-page">
       <section className="historical-summary">
-        <h1 className="historical-summary__heading">HISTORICAL SUMMARY</h1>
+        <h1 className="historical-summary__heading">Historical Summary</h1>
+
         {!showDropdown && (
-          <button className="historical-summary__back" onClick={handleBack}>
+          <button
+            className="historical-summary__back"
+            onClick={handleBack}
+          >
             Back
           </button>
         )}
 
-        <div className="historical-summary__data">
-          {reportData.map((row) => (
-            <span key={row.key} className="historical-summary__row">
-              <h4 className="historical-summary__product-name">{row.key}</h4>
-              <p className="historical-summary__product-count">{row.value}</p>
-            </span>
-          ))}
-        </div>
+        <LoadingMssg bool={loading} />
+
+        {!showDropdown && (
+          <div className="historical-summary__data">
+            {reportData.map((row) => (
+              <span key={row.key} className="historical-summary__row">
+                <h4 className="historical-summary__product-name">{row.key}</h4>
+                <p className="historical-summary__product-count">{row.value}</p>
+              </span>
+            ))}
+
+            <button
+              className="download-orders download-orders--orders"
+              onClick={() => handleDownload("report")}
+            >
+              Download Orders Timeframe
+            </button>
+
+            <button
+              className="download-orders download-orders--ids"
+              onClick={() => handleDownload("ids")}
+            >
+              Download Order IDs Timeframe
+            </button>
+          </div>
+        )}
+
+        {showDropdown && (
+          <section className="historical-summary__dates">
+            <Select
+              label="Start:"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              options={productionDates}
+              className="historical-summary__start"
+            />
+
+            <Select
+              label="End:"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              options={productionDates}
+              className="historical-summary__end"
+            />
+
+            <button
+              className="historical-summary__generate"
+              onClick={handleGenerateReport}
+            >
+              Generate Report
+            </button>
+          </section>
+        )}
       </section>
-
-      {showDropdown && (
-        <section className="dates">
-          <h1>Select Date</h1>
-          <span className="dates__label">Start: </span>
-          <select
-            className="dates__dropdown--start"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          >
-            <Options data={productionDates} />
-          </select>
-          <br />
-          <br />
-          <span className="dates__label">End: </span>
-          <select
-            className="dates__dropdown--end"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          >
-            <Options data={productionDates} />
-          </select>
-          <br />
-          <br />
-          <button className="dates__select" onClick={handleGenerateReport}>
-            Generate Report
-          </button>
-        </section>
-      )}
-
-      {!showDropdown && (
-        <>
-          <button
-            className="download-orders download-orders--orders"
-            onClick={() => handleDownload("report")}
-          >
-            download orders timeframe
-          </button>
-          <br />
-          <br />
-          <button
-            className="download-orders download-orders--ids"
-            onClick={() => handleDownload("ids")}
-          >
-            download order ids for this timeframe
-          </button>
-        </>
-      )}
     </div>
   );
 };
