@@ -4,6 +4,7 @@ import Controll from "../components/Controll";
 import TotalsReport from "../sections/TotalsReport";
 import LoadingMssg from "../components/LoadingMssg";
 import ExcellDownloads from "../sections/ExcellDownloads";
+import * as fetchLib from "../utils/fetch-library";
 
 const TodaysTotals = () => {
   // ----------------- STATE -----------------
@@ -27,21 +28,8 @@ const TodaysTotals = () => {
   const handleGenerateReport = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // Just use relative path like download buttons
-      const response = await fetch(`/api/data-on-fly?date=${date}`, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Server error: ${text}`);
-      }
-
-      const data = await response.json();
+      const data = await fetchLib.fetchJSON(`/api/data-on-fly?date=${date}`);
       const reportRows = Object.entries(data).filter(([key]) => key !== "_id");
       setReportData(reportRows);
     } catch (err) {
@@ -96,10 +84,10 @@ const TodaysTotals = () => {
           />
         </form>
 
-      <ExcellDownloads date={date} />
+        <ExcellDownloads date={date} />
       </section>
 
-      <LoadingMssg bool={loading}/>
+      <LoadingMssg bool={loading} />
 
       <TotalsReport data={reportData} />
 

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import LoadingMssg from "../components/LoadingMssg";
 import Options from "../components/OPtions";
+import * as fetchLib from "../utils/fetch-library";
 
 const HistoricalRange = () => {
   // ----------------- STATE -----------------
@@ -16,9 +17,7 @@ const HistoricalRange = () => {
   useEffect(() => {
     const fetchProductionDates = async () => {
       try {
-        const res = await fetch("/production-dates");
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
+        const data = await fetchLib.fetchJSON("/production-dates");
         setProductionDates(data.reverse());
         if (data.length > 0) {
           setStartDate(data[0]);
@@ -55,11 +54,9 @@ const HistoricalRange = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(
+      const data = await fetchLib.fetchJSON(
         `/historical-range?startDate=${startDate}&endDate=${endDate}`
       );
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const data = await res.json();
       setReportData(data);
     } catch (err) {
       console.error("Error generating report:", err);

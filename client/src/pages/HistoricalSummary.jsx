@@ -1,6 +1,7 @@
 // src/pages/HistoricalSummary.jsx
 import React, { useState, useEffect } from "react";
 import Options from "../components/OPtions";
+import * as fetchLib from "../utils/fetch-library";
 
 const HistoricalSummary = () => {
   // ----------------- STATE -----------------
@@ -14,9 +15,7 @@ const HistoricalSummary = () => {
   useEffect(() => {
     const fetchProductionDates = async () => {
       try {
-        const res = await fetch("/production-dates");
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
+        const data = await fetchLib.fetchJSON("/production-dates");
         setProductionDates(data);
         if (data.length > 0) {
           setStartDate(data[0]);

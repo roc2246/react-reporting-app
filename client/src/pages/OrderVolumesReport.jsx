@@ -5,6 +5,8 @@ import Heading from "../table/Heading";
 import Data from "../table/Data";
 import RowHeading from "../table/RowHeading";
 import Options from "../components/OPtions";
+import * as fetchLib from "../utils/fetch-library";
+
 
 const OrderVolumesReport = () => {
   const [dates, setDates] = useState([]);
@@ -57,9 +59,7 @@ const OrderVolumesReport = () => {
   useEffect(() => {
     const fetchDates = async () => {
       try {
-        const res = await fetch("/que-dates");
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const json = await res.json();
+        const json = await fetchLib.fetchJSON("/que-dates");
         setDates(json.reverse());
         setStartDate(json[json.length - 1]);
         setEndDate(json[0]);
@@ -76,11 +76,9 @@ const OrderVolumesReport = () => {
     const adjustedStart = closestDayOfWeek(startDate, dayOfWeek);
     setLoading(true);
     try {
-      const res = await fetch(
+      const json = await fetchLib.fetchJSON(
         `/order-volumes-report?startDate=${adjustedStart}&endDate=${endDate}`
       );
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const json = await res.json();
       setData(json);
     } catch (err) {
       console.error(err);

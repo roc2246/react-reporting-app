@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Heading from "../table/Heading";
 import Data from "../table/Data";
 import RowHeading from "../table/RowHeading";
+import * as fetchLib from "../utils/fetch-library";
 
 const SevenDayVolumeReport = () => {
   const [data, setData] = useState([]);
@@ -12,9 +13,7 @@ const SevenDayVolumeReport = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/weeks-volumes-report");
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const json = await res.json();
+        const json = await fetchLib.fetchJSON("/weeks-volumes-report");
         setData(json);
       } catch (err) {
         console.error("Error fetching 7-day volume report:", err);

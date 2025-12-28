@@ -1,6 +1,8 @@
 // src/pages/RecordHours.jsx
 import React, { useEffect, useState } from "react";
 import Controll from "../components/Controll";
+import * as fetchLib from "../utils/fetch-library";
+
 
 const RecordHours = () => {
   const [dates, setDates] = useState([]);
@@ -15,9 +17,7 @@ const RecordHours = () => {
   useEffect(() => {
     const fetchDates = async () => {
       try {
-        const res = await fetch("/production-dates");
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const json = await res.json();
+        const json = await fetchLib.fetchJSON("/production-dates");
         setDates(json.reverse());
         setSelectedDate(json[0]);
       } catch (err) {
@@ -30,11 +30,9 @@ const RecordHours = () => {
   // Retrieve previous data for FBA or hours
   const fetchPreviousData = async (type) => {
     try {
-      const res = await fetch(
+      const data = await fetchLib.fetchJSON(
         `/historical-range?startDate=${selectedDate}&endDate=${selectedDate}`
       );
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const data = await res.json();
       return data[0][type];
     } catch (err) {
       console.error(err);
