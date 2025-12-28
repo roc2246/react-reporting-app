@@ -30,7 +30,7 @@ const TodaysTotals = () => {
     setLoading(true);
     try {
       const data = await fetchLib.fetchJSON(`/api/data-on-fly?date=${date}`);
-      const reportRows = Object.entries(data).filter(([key]) => key !== "_id");
+      const reportRows = Object.entries(data);
       setReportData(reportRows);
     } catch (err) {
       console.error("Error fetching report:", err);
