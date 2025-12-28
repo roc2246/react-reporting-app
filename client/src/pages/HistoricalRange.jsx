@@ -71,11 +71,9 @@ const HistoricalRange = () => {
       return;
     }
     try {
-      const res = await fetch(
+      const blob = await fetchLib.fetchBlob(
         `/download-range?startDate=${startDate}&endDate=${endDate}`
       );
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

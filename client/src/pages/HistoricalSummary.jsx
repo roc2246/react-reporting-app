@@ -101,8 +101,7 @@ const HistoricalSummary = () => {
         ? `/download-report?startDate=${startDate}&endDate=${endDate}`
         : `/download-ids?startDate=${startDate}&endDate=${endDate}`;
     try {
-      const res = await fetch(url);
-      const blob = await res.blob();
+      const blob = await fetchLib.fetchBlob(url);
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
       link.download = `Report - ${startDate}-to-${endDate}.xlsx`;
