@@ -1,9 +1,10 @@
 // src/pages/SevenDayVolumeReport.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Heading from "../table/Heading";
 import Data from "../table/Data";
 import RowHeading from "../table/RowHeading";
 import * as fetchLib from "../utils/fetch-library";
+import LoadingMssg from "../components/LoadingMssg";
 
 const SevenDayVolumeReport = () => {
   const [data, setData] = useState([]);
@@ -26,11 +27,7 @@ const SevenDayVolumeReport = () => {
 
   // ----------------- HELPERS -----------------
 
-  if (loading) {
-    return (
-      <h1 className="_7-day-volumes-report__status">Loading, Please Wait...</h1>
-    );
-  }
+  if (loading) return <LoadingMssg bool={loading} />;
 
   if (!data || data.length === 0) {
     return <h1 className="_7-day-volumes-report__status">No data available</h1>;
