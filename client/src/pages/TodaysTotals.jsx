@@ -6,6 +6,7 @@ import LoadingMssg from "../components/LoadingMssg";
 import ExcellDownloads from "../sections/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
 import Input from "../components/Input";
+import * as dateLib from "../utils/date-library";
 
 const TodaysTotals = () => {
   // ----------------- STATE -----------------
@@ -16,10 +17,8 @@ const TodaysTotals = () => {
   // ----------------- EFFECTS -----------------
   // Set default date to today in Eastern Time
   useEffect(() => {
-    const currentDate = new Date();
-    const offsetMinutes = currentDate.getTimezoneOffset();
-    currentDate.setMinutes(currentDate.getMinutes() - offsetMinutes - 300);
-    setDate(currentDate.toISOString().split("T")[0]);
+    const currentDate = dateLib.getTodayInTimezone(-300);
+    setDate(currentDate);
   }, []);
 
   // ----------------- HANDLERS -----------------
@@ -42,25 +41,12 @@ const TodaysTotals = () => {
   return (
     <div className="todays-totals-page">
       <h1 className="todays-totals-page__heading">In-Day Estimate</h1>
-      <section className="report-generation">
-        <form
-          className="report-generation__form"
-          onSubmit={handleGenerateReport}
-        >
-          <Controll
-            htmlFor="dates"
-            label="Date:"
-            type="date"
-            onChange={(e) => setDate(e.target.value)}
-          />
-          <Input className="report-generation" value="Generate Report" />
-        </form>
-
-        <ExcellDownloads date={date} />
-      </section>
-
+      <form className="report-generation" onSubmit={handleGenerateReport}>
+        <Controll htmlFor="date" onChange={(e) => setDate(e.target.value)} />
+        <Input className="report-generation" value="Generate Report" />
+      </form>
+      <ExcellDownloads date={date} />
       <LoadingMssg bool={loading} />
-
       <TotalsReport data={reportData} />
     </div>
   );

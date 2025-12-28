@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Controll({ htmlFor, label, type = "text", onChange }) {
+export default function Controll({ htmlFor, onChange }) {
   const [value, setValue] = useState("");
 
   const handleChange = (e) => {
@@ -10,10 +10,10 @@ export default function Controll({ htmlFor, label, type = "text", onChange }) {
 
   return (
     <div>
-      <label htmlFor={htmlFor}>{label}</label>
+      <label htmlFor={htmlFor}>{`${htmlFor.toUpperCase()}:`}</label>
       <br />
       <input
-        type={type}
+        type={htmlFor === "date" ? "date" : "text"}
         id={htmlFor}
         value={value}
         onChange={handleChange}
