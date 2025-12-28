@@ -7,7 +7,6 @@ import RowHeading from "../table/RowHeading";
 import Options from "../components/OPtions";
 import * as fetchLib from "../utils/fetch-library";
 
-
 const OrderVolumesReport = () => {
   const [dates, setDates] = useState([]);
   const [dayOfWeek, setDayOfWeek] = useState("sunday");
@@ -17,25 +16,6 @@ const OrderVolumesReport = () => {
   const [loading, setLoading] = useState(false);
 
   // ------------- HELPERS -----------------
-
-  const getRowHeading = (catName) => {
-    switch (catName) {
-      case "fiveAM":
-        return "Orders @ 5 am";
-      case "threePM":
-        return "Orders @ 3 pm";
-      case "sixPM":
-        return "Orders @ 6 pm";
-      case "ninePM":
-        return "Orders @ 9 pm";
-      case "elevenPM":
-        return "Orders @ 11 pm";
-      case "productionHours":
-        return "Production Hours";
-      default:
-        return catName;
-    }
-  };
 
   const closestDayOfWeek = (date, targetDay) => {
     const daysMap = {
@@ -166,11 +146,7 @@ const OrderVolumesReport = () => {
           <tbody>
             {keys.map((key) => (
               <tr key={key} className="order-volumes-report__table-category">
-                <RowHeading
-                  className={"order-volumes-report"}
-                  key={key}
-                  getRowHeading={getRowHeading(key)}
-                />
+                <RowHeading className={"order-volumes-report"} key={key} />
                 <Data data={data} className="order-volumes-report" key={key} />
               </tr>
             ))}

@@ -25,24 +25,6 @@ const SevenDayVolumeReport = () => {
   }, []);
 
   // ----------------- HELPERS -----------------
-  const getRowHeading = (catName) => {
-    switch (catName) {
-      case "fiveAM":
-        return "Orders @ 5 am";
-      case "threePM":
-        return "Orders @ 3 pm";
-      case "sixPM":
-        return "Orders @ 6 pm";
-      case "ninePM":
-        return "Orders @ 9 pm";
-      case "elevenPM":
-        return "Orders @ 11 pm";
-      case "productionHours":
-        return "Production Hours";
-      default:
-        return catName;
-    }
-  };
 
   if (loading) {
     return (
@@ -67,11 +49,7 @@ const SevenDayVolumeReport = () => {
         <tbody>
           {keys.map((key) => (
             <tr key={key} className="_7-day-volumes-report__table-category">
-              <RowHeading
-                className={"_7-day-volumes-report"}
-                key={key}
-                getRowHeading={getRowHeading(key)}
-              />
+              <RowHeading className={"_7-day-volumes-report"} key={key} />
               <Data data={data} className="_7-day-volumes-report" key={key} />
             </tr>
           ))}
