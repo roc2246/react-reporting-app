@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Select from "../components/Select";
 import LoadingMssg from "../components/LoadingMssg";
+import ExcellDownloads from "../components/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
 
 const HistoricalSummary = () => {
@@ -17,15 +18,18 @@ const HistoricalSummary = () => {
     const fetchProductionDates = async () => {
       try {
         const data = await fetchLib.fetchJSON("/production-dates");
-        setProductionDates(data.reverse());
-        if (data.length > 0) {
-          setStartDate(data[0]);
-          setEndDate(data[data.length - 1]);
+        const reversed = data.reverse();
+
+        setProductionDates(reversed);
+        if (reversed.length > 0) {
+          setStartDate(reversed[0]);
+          setEndDate(reversed[reversed.length - 1]);
         }
       } catch (err) {
         console.error("Error fetching production dates:", err);
       }
     };
+
     fetchProductionDates();
   }, []);
 
@@ -64,20 +68,20 @@ const HistoricalSummary = () => {
       };
 
       dailyTotals.forEach((day) => {
-        grandTotals.items += parseInt(day.items || 0);
-        grandTotals.hats += parseInt(day.hats || 0);
-        grandTotals.bibs += parseInt(day.bibs || 0);
-        grandTotals.miniBears += parseInt(day.miniBears || 0);
-        grandTotals.giftBaskets += parseInt(day.giftBaskets || 0);
-        grandTotals.FBA += parseInt(day.FBA || 0);
-        grandTotals.towels += parseInt(day.towels || 0);
-        grandTotals.potHolders += parseInt(day.potHolders || 0);
-        grandTotals.bandanas += parseInt(day.bandanas || 0);
-        grandTotals.totalItems += parseInt(day.totalItems || 0);
-        grandTotals.totalHours += parseFloat(day.totalHours || 0);
+        grandTotals.items += Number(day.items || 0);
+        grandTotals.hats += Number(day.hats || 0);
+        grandTotals.bibs += Number(day.bibs || 0);
+        grandTotals.miniBears += Number(day.miniBears || 0);
+        grandTotals.giftBaskets += Number(day.giftBaskets || 0);
+        grandTotals.FBA += Number(day.FBA || 0);
+        grandTotals.towels += Number(day.towels || 0);
+        grandTotals.potHolders += Number(day.potHolders || 0);
+        grandTotals.bandanas += Number(day.bandanas || 0);
+        grandTotals.totalItems += Number(day.totalItems || 0);
+        grandTotals.totalHours += Number(day.totalHours || 0);
       });
 
-      grandTotals.totalHours = parseFloat(grandTotals.totalHours).toFixed(1);
+      grandTotals.totalHours = grandTotals.totalHours.toFixed(1);
       grandTotals.itemsPerHour = (
         grandTotals.totalItems / grandTotals.totalHours
       ).toFixed(1);
@@ -87,31 +91,6 @@ const HistoricalSummary = () => {
       console.error("Error generating report:", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDownload = async (type = "report") => {
-    if (new Date(endDate) < new Date(startDate)) {
-      alert("Please enter a valid range");
-      return;
-    }
-
-    const url =
-      type === "report"
-        ? `/download-report?startDate=${startDate}&endDate=${endDate}`
-        : `/download-ids?startDate=${startDate}&endDate=${endDate}`;
-
-    try {
-      const blob = await fetchLib.fetchBlob(url);
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `Report-${startDate}-to-${endDate}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(link.href);
-    } catch (err) {
-      console.error("Download error:", err);
     }
   };
 
@@ -127,10 +106,7 @@ const HistoricalSummary = () => {
         <h1 className="historical-summary__heading">Historical Summary</h1>
 
         {!showDropdown && (
-          <button
-            className="historical-summary__back"
-            onClick={handleBack}
-          >
+          <button className="historical-summary__back" onClick={handleBack}>
             Back
           </button>
         )}
@@ -141,24 +117,19 @@ const HistoricalSummary = () => {
           <div className="historical-summary__data">
             {reportData.map((row) => (
               <span key={row.key} className="historical-summary__row">
-                <h4 className="historical-summary__product-name">{row.key}</h4>
-                <p className="historical-summary__product-count">{row.value}</p>
+                <h4 className="historical-summary__product-name">
+                  {row.key}
+                </h4>
+                <p className="historical-summary__product-count">
+                  {row.value}
+                </p>
               </span>
             ))}
 
-            <button
-              className="download-orders download-orders--orders"
-              onClick={() => handleDownload("report")}
-            >
-              Download Orders Timeframe
-            </button>
-
-            <button
-              className="download-orders download-orders--ids"
-              onClick={() => handleDownload("ids")}
-            >
-              Download Order IDs Timeframe
-            </button>
+            <ExcellDownloads
+              startDate={startDate}
+              endDate={endDate}
+            />
           </div>
         )}
 
@@ -169,7 +140,6 @@ const HistoricalSummary = () => {
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               options={productionDates}
-              className="historical-summary__start"
             />
 
             <Select
@@ -177,7 +147,6 @@ const HistoricalSummary = () => {
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               options={productionDates}
-              className="historical-summary__end"
             />
 
             <button
