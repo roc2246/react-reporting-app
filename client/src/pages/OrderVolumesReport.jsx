@@ -43,7 +43,7 @@ const OrderVolumesReport = () => {
   }, []);
 
   // ----------------- GENERATE REPORT -----------------
-  const generateReport = async () => {
+  const handleGenerateReport = async () => {
     if (!startDate || !endDate) return;
 
     const adjustedStart = dateLib.closestDayOfWeek(startDate, dayOfWeek);
@@ -119,7 +119,7 @@ const OrderVolumesReport = () => {
       />
       <ReportGeneration
         className="order-volumes-report"
-        generateReport={generateReport}
+        handleGenerateReport={handleGenerateReport}
       />
 
       <LoadingMssg bool={loading} />

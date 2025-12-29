@@ -145,7 +145,7 @@ const HistoricalSummary = () => {
 
             <ReportGeneration
               className="historical-summary"
-              generateReport={handleGenerateReport}
+              handleGenerateReport={handleGenerateReport}
             />
           </section>
         )}

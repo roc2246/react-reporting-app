@@ -1,6 +1,6 @@
-export default function ReportGeneration({ className, generateReport }) {
+export default function ReportGeneration({ className, handleGenerateReport }) {
   return (
-    <button onClick={generateReport} className={`${className}__generate`}>
+    <button onClick={handleGenerateReport} className={`${className}__generate`}>
       Generate Report
     </button>
   );

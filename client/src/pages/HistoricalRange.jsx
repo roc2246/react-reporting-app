@@ -119,7 +119,7 @@ const HistoricalRange = () => {
 
         <ReportGeneration
           className="historical-range"
-          generateReport={handleGenerateReport}
+          handleGenerateReport={handleGenerateReport}
         />
 
         <LoadingMssg bool={loading} />
