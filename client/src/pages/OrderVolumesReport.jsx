@@ -96,7 +96,9 @@ const OrderVolumesReport = () => {
         label="Day of Week:"
         value={dayOfWeek}
         onChange={(e) => setDayOfWeek(e.target.value)}
-        options={weekdays.map((day) => day.charAt(0).toUpperCase() + day.slice(1))}
+        options={weekdays.map(
+          (day) => day.charAt(0).toUpperCase() + day.slice(1)
+        )}
         className="order-volumes-report__day-of-week"
       />
 
@@ -115,13 +117,10 @@ const OrderVolumesReport = () => {
         options={dates}
         className="order-volumes-report__end"
       />
-
-      <button
-        onClick={generateReport}
-        className="order-volumes-report__generate"
-      >
-        Generate Report
-      </button>
+      <ReportGeneration
+        className="order-volumes-report"
+        generateReport={generateReport}
+      />
 
       <LoadingMssg bool={loading} />
 

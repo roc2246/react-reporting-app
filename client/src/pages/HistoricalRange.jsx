@@ -117,12 +117,10 @@ const HistoricalRange = () => {
         <br />
         <br />
 
-        <button
-          className="historical-range__generate"
-          onClick={handleGenerateReport}
-        >
-          Generate Report
-        </button>
+        <ReportGeneration
+          className="historical-range"
+          generateReport={handleGenerateReport}
+        />
 
         <LoadingMssg bool={loading} />
 

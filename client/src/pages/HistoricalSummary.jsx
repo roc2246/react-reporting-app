@@ -3,6 +3,7 @@ import Select from "../components/Select";
 import LoadingMssg from "../components/LoadingMssg";
 import ExcellDownloads from "../components/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
+import ReportGeneration from "../components/ReportGeneration";
 
 const HistoricalSummary = () => {
   // ----------------- STATE -----------------
@@ -117,19 +118,12 @@ const HistoricalSummary = () => {
           <div className="historical-summary__data">
             {reportData.map((row) => (
               <span key={row.key} className="historical-summary__row">
-                <h4 className="historical-summary__product-name">
-                  {row.key}
-                </h4>
-                <p className="historical-summary__product-count">
-                  {row.value}
-                </p>
+                <h4 className="historical-summary__product-name">{row.key}</h4>
+                <p className="historical-summary__product-count">{row.value}</p>
               </span>
             ))}
 
-            <ExcellDownloads
-              startDate={startDate}
-              endDate={endDate}
-            />
+            <ExcellDownloads startDate={startDate} endDate={endDate} />
           </div>
         )}
 
@@ -149,12 +143,10 @@ const HistoricalSummary = () => {
               options={productionDates}
             />
 
-            <button
-              className="historical-summary__generate"
-              onClick={handleGenerateReport}
-            >
-              Generate Report
-            </button>
+            <ReportGeneration
+              className="historical-summary"
+              generateReport={handleGenerateReport}
+            />
           </section>
         )}
       </section>
