@@ -3,7 +3,9 @@ import LoadingMssg from "../components/LoadingMssg";
 import Select from "../components/Select";
 import ExcellDownloads from "../components/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
-import * as dateLib from "../utils/date-library";
+import Heading from "../table/Heading";
+import RowHeading from "../table/RowHeading";
+import Data from "../table/Data";
 
 const HistoricalRange = () => {
   const [productionDates, setProductionDates] = useState([]);
@@ -61,10 +63,7 @@ const HistoricalRange = () => {
   const calculateGrandTotals = (cat) => {
     if (reportData.length === 0) return "N/A";
 
-    const total = reportData.reduce(
-      (sum, row) => sum + (row[cat] ?? 0),
-      0
-    );
+    const total = reportData.reduce((sum, row) => sum + (row[cat] ?? 0), 0);
 
     if (cat === "totalHours") return total.toFixed(1);
 
@@ -77,10 +76,7 @@ const HistoricalRange = () => {
       if (hours === 0) return "N/A";
 
       return (
-        reportData.reduce(
-          (sum, row) => sum + (row.totalItems ?? 0),
-          0
-        ) / hours
+        reportData.reduce((sum, row) => sum + (row.totalItems ?? 0), 0) / hours
       ).toFixed(1);
     }
 
@@ -91,9 +87,7 @@ const HistoricalRange = () => {
   return (
     <div className="historical-range-page">
       <section className="historical-range">
-        <h1 className="historical-range__heading">
-          Generate Historical Range
-        </h1>
+        <h1 className="historical-range__heading">Generate Historical Range</h1>
 
         <Select
           label="Start:"
@@ -127,38 +121,17 @@ const HistoricalRange = () => {
         {reportData.length > 0 && (
           <>
             <table className="historical-range__report">
-              <thead>
-                <tr>
-                  <th></th>
-                  {reportData.map((day) => (
-                    <th key={day.productionDay}>
-                      {dateLib.formatDate(day.productionDay)}
-                    </th>
-                  ))}
-                  <th>{reportData.length} Day Total</th>
-                </tr>
-              </thead>
+              <Heading data={reportData} className="historical-range" />
 
               <tbody>
                 {tableKeys.map((key) => (
                   <tr key={key} className="table-category">
-                    <th
-                      className={`historical-range__table-category-name--${key}`}
-                    >
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </th>
-
-                    {reportData.map((row, idx) => (
-                      <td
-                        key={idx}
-                        className={`historical-range__table-category-value--${key}`}
-                      >
-                        {key === "totalHours"
-                          ? row[key]?.toFixed(1) ?? "N/A"
-                          : row[key] ?? "N/A"}
-                      </td>
-                    ))}
-
+                    <RowHeading className={"historical-range"} key={key} />
+                    <Data
+                      data={reportData}
+                      className="historical-range"
+                      key={key}
+                    />
                     <td
                       className={`historical-range__table-category-value--${key}`}
                     >

@@ -3,12 +3,11 @@ export default function Data({ data, className, key }) {
 
   return (
     <>
-      {data.map((day, idx) => (
-        <td
-          key={idx}
-          className={`${className}__table-category-value--${key}`}
-        >
-          {day[key]}
+      {data.map((row, idx) => (
+        <td key={idx} className={`${className}__table-category-value--${key}`}>
+          {key === "totalHours"
+            ? row[key]?.toFixed(1) ?? "N/A"
+            : row[key] ?? "N/A"}
         </td>
       ))}
     </>
