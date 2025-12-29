@@ -3,6 +3,7 @@ import LoadingMssg from "../components/LoadingMssg";
 import Select from "../components/Select";
 import ExcellDownloads from "../components/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
+import * as dateLib from "../utils/date-library";
 
 const HistoricalRange = () => {
   const [productionDates, setProductionDates] = useState([]);
@@ -16,9 +17,10 @@ const HistoricalRange = () => {
     const fetchProductionDates = async () => {
       try {
         const data = await fetchLib.fetchJSON("/production-dates");
-        const reversed = data.reverse();
+        const reversed = [...data].reverse();
 
         setProductionDates(reversed);
+
         if (reversed.length > 0) {
           setStartDate(reversed[0]);
           setEndDate(reversed[reversed.length - 1]);
@@ -31,22 +33,7 @@ const HistoricalRange = () => {
     fetchProductionDates();
   }, []);
 
-  // ----------------- HELPERS -----------------
-  const formatDate = (inputDate) => {
-    const dateObj = new Date(inputDate + "T00:00:00-05:00");
-    const options = {
-      weekday: "long",
-      month: "numeric",
-      day: "numeric",
-      timeZone: "America/New_York",
-    };
-
-    const formatted = dateObj.toLocaleDateString("en-US", options);
-    const [weekday, dateStr] = formatted.split(",");
-    const [month, day] = dateStr.trim().split(" ");
-    return `${weekday.trim()} ${month} ${day}`;
-  };
-
+  // ----------------- HANDLERS -----------------
   const handleGenerateReport = async () => {
     if (new Date(endDate) < new Date(startDate)) {
       alert("Please select appropriate range");
@@ -67,6 +54,7 @@ const HistoricalRange = () => {
     }
   };
 
+  // ----------------- TABLE HELPERS -----------------
   const tableKeys =
     reportData.length > 0 ? Object.keys(reportData[0]).slice(2) : [];
 
@@ -85,6 +73,7 @@ const HistoricalRange = () => {
         (sum, row) => sum + (row.totalHours ?? 0),
         0
       );
+
       if (hours === 0) return "N/A";
 
       return (
@@ -145,12 +134,13 @@ const HistoricalRange = () => {
                   <th></th>
                   {reportData.map((day) => (
                     <th key={day.productionDay}>
-                      {formatDate(day.productionDay)}
+                      {dateLib.formatDate(day.productionDay)}
                     </th>
                   ))}
                   <th>{reportData.length} Day Total</th>
                 </tr>
               </thead>
+
               <tbody>
                 {tableKeys.map((key) => (
                   <tr key={key} className="table-category">
@@ -183,10 +173,7 @@ const HistoricalRange = () => {
 
             <br />
 
-            <ExcellDownloads
-              startDate={startDate}
-              endDate={endDate}
-            />
+            <ExcellDownloads startDate={startDate} endDate={endDate} />
           </>
         )}
       </section>
