@@ -50,40 +50,7 @@ const HistoricalSummary = () => {
         `/summarized-range?startDate=${startDate}&endDate=${endDate}`
       );
 
-      const grandTotals = {
-        from: `${startDate} to ${endDate}`,
-        items: 0,
-        hats: 0,
-        bibs: 0,
-        miniBears: 0,
-        giftBaskets: 0,
-        FBA: 0,
-        towels: 0,
-        potHolders: 0,
-        bandanas: 0,
-        totalItems: 0,
-        totalHours: 0,
-        itemsPerHour: 0,
-      };
-
-      data.forEach((day) => {
-        grandTotals.items += Number(day.items || 0);
-        grandTotals.hats += Number(day.hats || 0);
-        grandTotals.bibs += Number(day.bibs || 0);
-        grandTotals.miniBears += Number(day.miniBears || 0);
-        grandTotals.giftBaskets += Number(day.giftBaskets || 0);
-        grandTotals.FBA += Number(day.FBA || 0);
-        grandTotals.towels += Number(day.towels || 0);
-        grandTotals.potHolders += Number(day.potHolders || 0);
-        grandTotals.bandanas += Number(day.bandanas || 0);
-        grandTotals.totalItems += Number(day.totalItems || 0);
-        grandTotals.totalHours += Number(day.totalHours || 0);
-      });
-
-      grandTotals.totalHours = grandTotals.totalHours.toFixed(1);
-      grandTotals.itemsPerHour = (
-        grandTotals.totalItems / grandTotals.totalHours
-      ).toFixed(1);
+      const grandTotals = reportLib.grandTottals(startDate, endDate, data);
 
       setData(createRowData(grandTotals));
     } catch (err) {
