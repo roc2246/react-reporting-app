@@ -38,8 +38,10 @@ const HistoricalRange = () => {
 
   // ----------------- HANDLERS -----------------
   const handleGenerateReport = async () => {
+    if (!startDate || !endDate) return;
+    
     if (new Date(endDate) < new Date(startDate)) {
-      alert("Please select appropriate range");
+      alert("Please enter a valid range");
       return;
     }
 

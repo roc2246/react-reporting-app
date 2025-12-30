@@ -4,13 +4,14 @@ import LoadingMssg from "../components/LoadingMssg";
 import ExcellDownloads from "../components/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
 import ReportGeneration from "../components/ReportGeneration";
+import * as reportLib from "../utils/report-library";
 
 const HistoricalSummary = () => {
   // ----------------- STATE -----------------
   const [productionDates, setProductionDates] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [reportData, setReportData] = useState([]);
+  const [reportData, setData] = useState([]);
   const [showDropdown, setShowDropdown] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -39,16 +40,13 @@ const HistoricalSummary = () => {
     Object.entries(grandTotals).map(([key, value]) => ({ key, value }));
 
   const handleGenerateReport = async () => {
-    if (new Date(endDate) < new Date(startDate)) {
-      alert("Please enter a valid range");
-      return;
-    }
+    reportLib.validateRange(startDate, endDate);
 
     setShowDropdown(false);
     setLoading(true);
 
     try {
-      const dailyTotals = await fetchLib.fetchJSON(
+      const data = await fetchLib.fetchJSON(
         `/summarized-range?startDate=${startDate}&endDate=${endDate}`
       );
 
@@ -68,7 +66,7 @@ const HistoricalSummary = () => {
         itemsPerHour: 0,
       };
 
-      dailyTotals.forEach((day) => {
+      data.forEach((day) => {
         grandTotals.items += Number(day.items || 0);
         grandTotals.hats += Number(day.hats || 0);
         grandTotals.bibs += Number(day.bibs || 0);
@@ -87,7 +85,7 @@ const HistoricalSummary = () => {
         grandTotals.totalItems / grandTotals.totalHours
       ).toFixed(1);
 
-      setReportData(createRowData(grandTotals));
+      setData(createRowData(grandTotals));
     } catch (err) {
       console.error("Error generating report:", err);
     } finally {
@@ -97,7 +95,7 @@ const HistoricalSummary = () => {
 
   const handleBack = () => {
     setShowDropdown(true);
-    setReportData([]);
+    setData([]);
   };
 
   // ----------------- RENDER -----------------

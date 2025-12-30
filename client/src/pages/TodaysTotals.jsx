@@ -7,11 +7,12 @@ import ExcellDownloads from "../sections/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
 import Input from "../components/Input";
 import * as dateLib from "../utils/date-library";
+import * as reportLib from "../utils/report-library"; 
 
 const TodaysTotals = () => {
   // ----------------- STATE -----------------
   const [date, setDate] = useState("");
-  const [reportData, setReportData] = useState([]);
+  const [reportData, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // ----------------- EFFECTS -----------------
@@ -24,12 +25,15 @@ const TodaysTotals = () => {
   // ----------------- HANDLERS -----------------
 
   const handleGenerateReport = async (e) => {
+    reportLib.validateDate(date);
+
     e.preventDefault();
     setLoading(true);
+
     try {
       const data = await fetchLib.fetchJSON(`/api/data-on-fly?date=${date}`);
       const reportRows = Object.entries(data);
-      setReportData(reportRows);
+      setData(reportRows);
     } catch (err) {
       console.error("Error fetching report:", err);
     } finally {

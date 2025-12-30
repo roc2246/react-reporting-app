@@ -5,6 +5,7 @@ import Select from "../components/Select";
 import * as fetchLib from "../utils/fetch-library";
 import * as dateLib from "../utils/date-library";
 import { Table } from "../table/Table";
+import * as reportLib from "../utils/report-library";
 
 const OrderVolumesReport = () => {
   const [dates, setDates] = useState([]);
@@ -43,18 +44,18 @@ const OrderVolumesReport = () => {
 
   // ----------------- GENERATE REPORT -----------------
   const handleGenerateReport = async () => {
-    if (!startDate || !endDate) return;
+    reportLib.validateRange(startDate, endDate);
 
     const adjustedStart = dateLib.closestDayOfWeek(startDate, dayOfWeek);
     setLoading(true);
 
     try {
-      const url = `/order-volumes-report?startDate=${adjustedStart}&endDate=${endDate}`;
-      const json = await fetchLib.fetchJSON(url);
-      setData(json);
+      const data = await fetchLib.fetchJSON(
+        `/order-volumes-report?startDate=${adjustedStart}&endDate=${endDate}`
+      );
+      setData(data);
     } catch (err) {
       console.error("Error fetching report:", err);
-      setData([]);
     } finally {
       setLoading(false);
     }
