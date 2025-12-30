@@ -41,18 +41,19 @@ const TodaysTotals = () => {
     }
   };
 
+  const className = "todays-totals";
   // ----------------- RENDER -----------------
   return (
-    <div className="todays-totals-page">
-      <h1 className="todays-totals-page__heading">In-Day Estimate</h1>
-      <form className="report-generation" onSubmit={handleGenerateReport}>
+    <section className={className}>
+      <h1 className={`${className}__heading`}>In-Day Estimate</h1>
+      <form className={`${className}__form`} onSubmit={handleGenerateReport}>
         <Controll htmlFor="date" onChange={(e) => setDate(e.target.value)} />
-        <Input className="report-generation" value="Generate Report" />
+        <Input className={className} value="Generate Report" />
       </form>
       <ExcellDownloads date={date} />
       <LoadingMssg bool={loading} />
       <TotalsReport data={reportData} />
-    </div>
+    </section>
   );
 };
 

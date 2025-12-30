@@ -7,7 +7,7 @@ import Heading from "../table/Heading";
 import RowHeading from "../table/RowHeading";
 import Data from "../table/Data";
 import { Table } from "../table/Table";
-import * as reportLib from "../utils/report-library"; 
+import * as reportLib from "../utils/report-library";
 
 const HistoricalRange = () => {
   const [productionDates, setProductionDates] = useState([]);
@@ -38,8 +38,9 @@ const HistoricalRange = () => {
   }, []);
 
   // ----------------- HANDLERS -----------------
-  const handleGenerateReport = async () => {
+  const handleGenerateReport = async (e) => {
     reportLib.validateRange(startDate, endDate);
+    e.preventDefault();
     setLoading(true);
 
     try {
@@ -61,36 +62,36 @@ const HistoricalRange = () => {
   const className = "historical-range";
   // ----------------- RENDER -----------------
   return (
-    <div className="historical-range-page">
-      <section className="historical-range">
-        <h1 className="historical-range__heading">Generate Historical Range</h1>
+      <section className={className}>
+        <h1 className={`${className}__heading`}>Generate Historical Range</h1>
+        <form
+          className={`${className}__form`}
+          onSubmit={handleGenerateReport}
+        >
+          <Select
+            label="Start:"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            options={productionDates}
+            className="historical-range__start"
+          />
 
-        <Select
-          label="Start:"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          options={productionDates}
-          className="historical-range__start"
-        />
+          <br />
+          <br />
 
-        <br />
-        <br />
+          <Select
+            label="End:"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            options={productionDates}
+            className="historical-range__end"
+          />
 
-        <Select
-          label="End:"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          options={productionDates}
-          className="historical-range__end"
-        />
+          <br />
+          <br />
 
-        <br />
-        <br />
-
-        <ReportGeneration
-          className="historical-range"
-          handleGenerateReport={handleGenerateReport}
-        />
+          <Input className={className} value="Generate Report" />
+        </form>
 
         <LoadingMssg bool={loading} />
 
@@ -102,7 +103,6 @@ const HistoricalRange = () => {
           </>
         )}
       </section>
-    </div>
   );
 };
 

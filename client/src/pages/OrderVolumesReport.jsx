@@ -43,9 +43,9 @@ const OrderVolumesReport = () => {
   }, []);
 
   // ----------------- GENERATE REPORT -----------------
-  const handleGenerateReport = async () => {
+  const handleGenerateReport = async (e) => {
     reportLib.validateRange(startDate, endDate);
-
+    e.preventDefault();
     const adjustedStart = dateLib.closestDayOfWeek(startDate, dayOfWeek);
     setLoading(true);
 
@@ -69,41 +69,36 @@ const OrderVolumesReport = () => {
 
   // ----------------- RENDER -----------------
   return (
-    <section className="order-volumes-report">
-      <h1 className="order-volumes-report__heading">
-        Generate Historical Range Report
-      </h1>
+    <section className={className}>
+      <h1 className={`${className}__heading`}>Order Volumes Report</h1>
+      <form className={`${className}__form`} onSubmit={handleGenerateReport}>
+        <Select
+          label="Day of Week:"
+          value={dayOfWeek}
+          onChange={(e) => setDayOfWeek(e.target.value)}
+          options={weekdays.map(
+            (day) => day.charAt(0).toUpperCase() + day.slice(1)
+          )}
+          className={`${className}__day-of-week`}
+        />
 
-      <Select
-        label="Day of Week:"
-        value={dayOfWeek}
-        onChange={(e) => setDayOfWeek(e.target.value)}
-        options={weekdays.map(
-          (day) => day.charAt(0).toUpperCase() + day.slice(1)
-        )}
-        className="order-volumes-report__day-of-week"
-      />
+        <Select
+          label="Report Start Date:"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          options={dates}
+          className={`${className}__start`}
+        />
 
-      <Select
-        label="Report Start Date:"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        options={dates}
-        className="order-volumes-report__start"
-      />
-
-      <Select
-        label="Report End Date:"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        options={dates}
-        className="order-volumes-report__end"
-      />
-      <ReportGeneration
-        className="order-volumes-report"
-        handleGenerateReport={handleGenerateReport}
-      />
-
+        <Select
+          label="Report End Date:"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          options={dates}
+          className={`${className}__end`}
+        />
+        <Input className={className} value="Generate Report" />
+      </form>
       <LoadingMssg bool={loading} />
 
       {data.length > 0 && (

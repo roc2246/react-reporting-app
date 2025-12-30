@@ -6,13 +6,12 @@ import * as fetchLib from "../utils/fetch-library";
 import ReportGeneration from "../components/ReportGeneration";
 import * as reportLib from "../utils/report-library";
 
-const HistoricalSummary = () => {
+export default function HistoricalSummary() {
   // ----------------- STATE -----------------
   const [productionDates, setProductionDates] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reportData, setData] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(true);
   const [loading, setLoading] = useState(false);
 
   // ----------------- EFFECTS -----------------
@@ -39,10 +38,9 @@ const HistoricalSummary = () => {
   const createRowData = (grandTotals) =>
     Object.entries(grandTotals).map(([key, value]) => ({ key, value }));
 
-  const handleGenerateReport = async () => {
+  const handleGenerateReport = async (e) => {
     reportLib.validateRange(startDate, endDate);
-
-    setShowDropdown(false);
+    e.preventDefault();
     setLoading(true);
 
     try {
@@ -59,64 +57,48 @@ const HistoricalSummary = () => {
       setLoading(false);
     }
   };
-
-  const handleBack = () => {
-    setShowDropdown(true);
-    setData([]);
-  };
+  const className = "historical-summary";
 
   // ----------------- RENDER -----------------
   return (
-    <div className="historical-summary-page">
-      <section className="historical-summary">
-        <h1 className="historical-summary__heading">Historical Summary</h1>
+    <section className={className}>
+      <h1 className={`${className}__heading`}>Historical Summary</h1>
+      <form
+        className={`${className}__form`}
+        onSubmit={handleGenerateReport}
+      >
+        <Select
+          label="Start:"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          options={productionDates}
+        />
 
-        {!showDropdown && (
-          <button className="historical-summary__back" onClick={handleBack}>
-            Back
-          </button>
-        )}
+        <Select
+          label="End:"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          options={productionDates}
+        />
 
-        <LoadingMssg bool={loading} />
-
-        {!showDropdown && (
-          <div className="historical-summary__data">
-            {reportData.map((row) => (
-              <span key={row.key} className="historical-summary__row">
-                <h4 className="historical-summary__product-name">{row.key}</h4>
-                <p className="historical-summary__product-count">{row.value}</p>
-              </span>
-            ))}
-
-            <ExcellDownloads startDate={startDate} endDate={endDate} />
-          </div>
-        )}
-
-        {showDropdown && (
-          <section className="historical-summary__dates">
-            <Select
-              label="Start:"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              options={productionDates}
-            />
-
-            <Select
-              label="End:"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              options={productionDates}
-            />
-
-            <ReportGeneration
-              className="historical-summary"
-              handleGenerateReport={handleGenerateReport}
-            />
-          </section>
-        )}
-      </section>
-    </div>
+        <ReportGeneration
+          className={className}
+          handleGenerateReport={handleGenerateReport}
+        />
+        <Input className={className} value="Generate Report" />
+      </form>
+      <ExcellDownloads startDate={startDate} endDate={endDate} />
+      <LoadingMssg bool={loading} />
+      {!loading && (
+        <div className={`${className}__data`}>
+          {reportData.map((row) => (
+            <span key={row.key} className={`${className}__row`}>
+              <h4 className={`${className}__product-name`}>{row.key}</h4>
+              <p className={`${className}__product-count`}>{row.value}</p>
+            </span>
+          ))}
+        </div>
+      )}
+    </section>
   );
-};
-
-export default HistoricalSummary;
+}
