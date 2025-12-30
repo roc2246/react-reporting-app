@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import LoadingMssg from "../components/LoadingMssg";
-import Heading from "../table/Heading";
-import Data from "../table/Data";
-import RowHeading from "../table/RowHeading";
+
 import Select from "../components/Select";
 import * as fetchLib from "../utils/fetch-library";
 import * as dateLib from "../utils/date-library";
+import { Table } from "../table/Table";
 
 const OrderVolumesReport = () => {
   const [dates, setDates] = useState([]);
@@ -62,28 +61,10 @@ const OrderVolumesReport = () => {
   };
 
   // ----------------- HELPERS -----------------
-  const getRowHeading = (catName) => {
-    switch (catName) {
-      case "fiveAM":
-        return "Orders @ 5 am";
-      case "threePM":
-        return "Orders @ 3 pm";
-      case "sixPM":
-        return "Orders @ 6 pm";
-      case "ninePM":
-        return "Orders @ 9 pm";
-      case "elevenPM":
-        return "Orders @ 11 pm";
-      case "productionHours":
-        return "Production Hours";
-      default:
-        return catName;
-    }
-  };
-
   const keys = data[0]
     ? Object.keys(data[0]).filter((key) => key !== "productionDay")
     : [];
+  const className = "order-volumes-report";
 
   // ----------------- RENDER -----------------
   return (
@@ -125,21 +106,7 @@ const OrderVolumesReport = () => {
       <LoadingMssg bool={loading} />
 
       {data.length > 0 && (
-        <table className="order-volumes-report__report">
-          <Heading data={data} className="order-volumes-report" />
-          <tbody>
-            {keys.map((key) => (
-              <tr key={key} className="order-volumes-report__table-category">
-                <RowHeading
-                  className="order-volumes-report"
-                  key={key}
-                  getRowHeading={getRowHeading(key)}
-                />
-                <Data data={data} className="order-volumes-report" key={key} />
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Table className={className} data={data} keys={keys} />
       )}
     </section>
   );

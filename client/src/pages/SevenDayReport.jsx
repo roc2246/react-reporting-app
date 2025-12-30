@@ -1,10 +1,8 @@
 // src/pages/SevenDayVolumeReport.jsx
 import { useEffect, useState } from "react";
-import Heading from "../table/Heading";
-import Data from "../table/Data";
-import RowHeading from "../table/RowHeading";
 import * as fetchLib from "../utils/fetch-library";
 import LoadingMssg from "../components/LoadingMssg";
+import { Table } from "../table/Table";
 
 const SevenDayVolumeReport = () => {
   const [data, setData] = useState([]);
@@ -35,23 +33,14 @@ const SevenDayVolumeReport = () => {
 
   const keys = Object.keys(data[0]).filter((key) => key !== "productionDay");
 
+  const className = "_7-day-volumes-report";
   // ----------------- RENDER -----------------
   return (
-    <section className="_7-day-volumes-report">
-      <h1 className="_7-day-volumes-report__heading">
+    <section className={className}>
+      <h1 className={`${className}__heading`}>
         7 Day Historical Order Que
       </h1>
-      <table className="_7-day-volumes-report__report">
-        <Heading data={data} className="_7-day-volumes-report" />
-        <tbody>
-          {keys.map((key) => (
-            <tr key={key} className="_7-day-volumes-report__table-category">
-              <RowHeading className={"_7-day-volumes-report"} key={key} />
-              <Data data={data} className="_7-day-volumes-report" key={key} />
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table className={className} data={data} keys={keys} />
     </section>
   );
 };

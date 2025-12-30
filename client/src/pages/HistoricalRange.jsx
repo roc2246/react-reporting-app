@@ -6,12 +6,13 @@ import * as fetchLib from "../utils/fetch-library";
 import Heading from "../table/Heading";
 import RowHeading from "../table/RowHeading";
 import Data from "../table/Data";
+import { Table } from "../table/Table";
 
 const HistoricalRange = () => {
   const [productionDates, setProductionDates] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [reportData, setReportData] = useState([]);
+  const [data, setdata] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // ----------------- EFFECTS -----------------
@@ -48,7 +49,7 @@ const HistoricalRange = () => {
       const data = await fetchLib.fetchJSON(
         `/historical-range?startDate=${startDate}&endDate=${endDate}`
       );
-      setReportData(data);
+      setdata(data);
     } catch (err) {
       console.error("Error generating report:", err);
     } finally {
@@ -57,32 +58,10 @@ const HistoricalRange = () => {
   };
 
   // ----------------- TABLE HELPERS -----------------
-  const tableKeys =
-    reportData.length > 0 ? Object.keys(reportData[0]).slice(2) : [];
+  const keys = data.length > 0 ? Object.keys(data[0]).slice(2) : [];
 
-  const calculateGrandTotals = (cat) => {
-    if (reportData.length === 0) return "N/A";
-
-    const total = reportData.reduce((sum, row) => sum + (row[cat] ?? 0), 0);
-
-    if (cat === "totalHours") return total.toFixed(1);
-
-    if (cat === "itemsPerHour") {
-      const hours = reportData.reduce(
-        (sum, row) => sum + (row.totalHours ?? 0),
-        0
-      );
-
-      if (hours === 0) return "N/A";
-
-      return (
-        reportData.reduce((sum, row) => sum + (row.totalItems ?? 0), 0) / hours
-      ).toFixed(1);
-    }
-
-    return total;
-  };
-
+  // ________________HELPERS________________
+  const className = "historical-range";
   // ----------------- RENDER -----------------
   return (
     <div className="historical-range-page">
@@ -118,32 +97,10 @@ const HistoricalRange = () => {
 
         <LoadingMssg bool={loading} />
 
-        {reportData.length > 0 && (
+        {data.length > 0 && (
           <>
-            <table className="historical-range__report">
-              <Heading data={reportData} className="historical-range" />
-
-              <tbody>
-                {tableKeys.map((key) => (
-                  <tr key={key} className="table-category">
-                    <RowHeading className={"historical-range"} key={key} />
-                    <Data
-                      data={reportData}
-                      className="historical-range"
-                      key={key}
-                    />
-                    <td
-                      className={`historical-range__table-category-value--${key}`}
-                    >
-                      {calculateGrandTotals(key)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
+            <Table className={className} data={data} keys={keys} />
             <br />
-
             <ExcellDownloads startDate={startDate} endDate={endDate} />
           </>
         )}
