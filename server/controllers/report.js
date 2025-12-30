@@ -109,3 +109,14 @@ export async function getOrderVolumesReport(req, res, startDate, endDate, getVol
     if (res?.status && res.send) res.status(500).send("Internal Server Error");
   }
 }
+
+export async function getSummarizedRange(req, res, startDate, endDate) {
+  try {
+    const historicalRange = await models.getHistoricalRange(startDate, endDate);
+    res.json(historicalRange);
+  } catch (e) {
+    console.error("Error fetching orders:", e);
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end("Internal Server Error");
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import LoadingMssg from "../components/LoadingMssg";
 import Select from "../components/Select";
-import ExcellDownloads from "../components/ExcellDownloads";
+import ExcellDownloads from "../sections/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
 import Heading from "../table/Heading";
 import RowHeading from "../table/RowHeading";

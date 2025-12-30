@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import Select from "../components/Select";
 import LoadingMssg from "../components/LoadingMssg";
-import ExcellDownloads from "../components/ExcellDownloads";
+import ExcellDownloads from "../sections/ExcellDownloads";
 import * as fetchLib from "../utils/fetch-library";
-import ReportGeneration from "../components/ReportGeneration";
+import Input from "../components/Input";
 import * as reportLib from "../utils/report-library";
 
 export default function HistoricalSummary() {
@@ -18,7 +18,7 @@ export default function HistoricalSummary() {
   useEffect(() => {
     const fetchProductionDates = async () => {
       try {
-        const data = await fetchLib.fetchJSON("/production-dates");
+        const data = await fetchLib.fetchJSON("/api/production-dates");
         const reversed = data.reverse();
 
         setProductionDates(reversed);
@@ -45,7 +45,7 @@ export default function HistoricalSummary() {
 
     try {
       const data = await fetchLib.fetchJSON(
-        `/summarized-range?startDate=${startDate}&endDate=${endDate}`
+        `/api/summarized-range?startDate=${startDate}&endDate=${endDate}`
       );
 
       const grandTotals = reportLib.grandTottals(startDate, endDate, data);
