@@ -63,15 +63,13 @@ export default function HistoricalSummary() {
   return (
     <section className={className}>
       <h1 className={`${className}__heading`}>Historical Summary</h1>
-      <form
-        className={`${className}__form`}
-        onSubmit={handleGenerateReport}
-      >
+      <form className={`${className}__form`} onSubmit={handleGenerateReport}>
         <Select
           label="Start:"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
           options={productionDates}
+          className={`${className}__start`}
         />
 
         <Select
@@ -79,12 +77,9 @@ export default function HistoricalSummary() {
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
           options={productionDates}
+          className={`${className}__end`}
         />
 
-        <ReportGeneration
-          className={className}
-          handleGenerateReport={handleGenerateReport}
-        />
         <Input className={className} value="Generate Report" />
       </form>
       <ExcellDownloads startDate={startDate} endDate={endDate} />

@@ -73,7 +73,7 @@ const HistoricalRange = () => {
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             options={productionDates}
-            className="historical-range__start"
+            className={`${className}__start`}
           />
 
           <br />
@@ -84,7 +84,7 @@ const HistoricalRange = () => {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             options={productionDates}
-            className="historical-range__end"
+            className={`${className}__end`}
           />
 
           <br />
