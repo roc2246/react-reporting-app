@@ -7,6 +7,7 @@ import Heading from "../table/Heading";
 import RowHeading from "../table/RowHeading";
 import Data from "../table/Data";
 import { Table } from "../table/Table";
+import * as reportLib from "../utils/report-library"; 
 
 const HistoricalRange = () => {
   const [productionDates, setProductionDates] = useState([]);
@@ -38,13 +39,7 @@ const HistoricalRange = () => {
 
   // ----------------- HANDLERS -----------------
   const handleGenerateReport = async () => {
-    if (!startDate || !endDate) return;
-    
-    if (new Date(endDate) < new Date(startDate)) {
-      alert("Please enter a valid range");
-      return;
-    }
-
+    reportLib.validateRange(startDate, endDate);
     setLoading(true);
 
     try {
