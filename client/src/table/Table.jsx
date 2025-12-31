@@ -27,9 +27,9 @@ export function Table({ className, data, keys }) {
       <Heading data={data} className={className} />
       <tbody>
         {keys.map((key) => (
-          <tr key={key} className={`${className}__table-category`}>
-            <RowHeading className={className} key={key} />
-            <Data data={data} className={className} key={key} />
+          <tr keys={key} className={`${className}__table-category`}>
+            <RowHeading className={className} keys={key} />
+            <Data data={data} className={className} keys={key} />
             {className === "historical-range" && (
               <td className={`historical-range__table-category-value--${key}`}>
                 {calculateGrandTotals(key)}
