@@ -26,3 +26,52 @@ export async function addQueTotal(time) {
   const { total } = await response.json();
   await collection.updateOne({ productionDay: todaysDate }, { $set: { [time]: total } });
 }
+
+export async function orderVolumesReport(dates) {
+  try {
+    const { db } = await connectToDB();
+    const que = db.collection("order-que");
+    const dailyTotals = db.collection("daily-totals");
+
+    // Aggregate data for each date
+    const result = [];
+    for (const date of dates) {
+      const [queData, productionHours] = await Promise.all([
+        que.findOne({ productionDay: date }),
+        dailyTotals
+          .aggregate([
+            {
+              $match: { productionDay: date },
+            },
+            {
+              $project: {
+                _id: 0,
+                totalHours: { $round: ["$totalHours", 1] },
+              },
+            },
+          ])
+          .toArray(),
+      ]);
+
+      const totalHours =
+        productionHours.length > 0 ? productionHours[0].totalHours : 0;
+
+      const data = {
+        productionDay: date,
+        fiveAM: queData ? queData.fiveAM : 0,
+        threePM: queData ? queData.threePM : 0,
+        sixPM: queData ? queData.sixPM : 0,
+        ninePM: queData ? queData.ninePM : 0,
+        elevenPM: queData ? queData.elevenPM : 0,
+        productionHours: totalHours,
+      };
+
+      result.push(data);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching historical range report:", error);
+    throw error;
+  }
+}

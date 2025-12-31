@@ -129,3 +129,13 @@ export async function manageHistoricalRange(req, res, startDate, endDate) {
     console.log(`Error ${e}`);
   }
 }
+export async function getWeeksVolumesReport(req, res) {
+  try {
+    const selectDates = utilities.getWeekSpan();
+    const ques = await models.orderVolumesReport(selectDates);
+    res.status(200).send(ques);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Internal Server Error");
+  }
+}

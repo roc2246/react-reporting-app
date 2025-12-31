@@ -12,7 +12,7 @@ const SevenDayVolumeReport = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const json = await fetchLib.fetchJSON("/weeks-volumes-report");
+        const json = await fetchLib.fetchJSON("/api/weeks-volumes-report");
         setData(json);
       } catch (err) {
         console.error("Error fetching 7-day volume report:", err);
