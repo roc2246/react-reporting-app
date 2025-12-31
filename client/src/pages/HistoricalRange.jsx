@@ -6,6 +6,7 @@ import * as fetchLib from "../utils/fetch-library";
 import Heading from "../table/Heading";
 import RowHeading from "../table/RowHeading";
 import Data from "../table/Data";
+import Input from "../components/Input";
 import { Table } from "../table/Table";
 import * as reportLib from "../utils/report-library";
 
@@ -20,7 +21,7 @@ const HistoricalRange = () => {
   useEffect(() => {
     const fetchProductionDates = async () => {
       try {
-        const data = await fetchLib.fetchJSON("/production-dates");
+        const data = await fetchLib.fetchJSON("/api/production-dates");
         const reversed = [...data].reverse();
 
         setProductionDates(reversed);
@@ -45,7 +46,7 @@ const HistoricalRange = () => {
 
     try {
       const data = await fetchLib.fetchJSON(
-        `/historical-range?startDate=${startDate}&endDate=${endDate}`
+        `/api/historical-range?startDate=${startDate}&endDate=${endDate}`
       );
       setdata(data);
     } catch (err) {

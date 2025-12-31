@@ -120,3 +120,12 @@ export async function getSummarizedRange(req, res, startDate, endDate) {
     res.end("Internal Server Error");
   }
 }
+
+export async function manageHistoricalRange(req, res, startDate, endDate) {
+  try {
+    const range = await models.getHistoricalRange(startDate, endDate);
+    res.json(range);
+  } catch (e) {
+    console.log(`Error ${e}`);
+  }
+}
