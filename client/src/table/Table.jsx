@@ -26,13 +26,15 @@ export function Table({ className, data, keys }) {
     <table className={`${className}__report`}>
       <Heading data={data} className={className} />
       <tbody>
-        {keys.map((key) => (
-          <tr keys={key} className={`${className}__table-category`}>
-            <RowHeading className={className} keys={key} />
-            <Data data={data} className={className} keys={key} />
+        {keys.map((category) => (
+          <tr key={category} className={`${className}__table-category`}>
+            <RowHeading className={className} category={category} />
+            <Data data={data} className={className} category={category} />
             {className === "historical-range" && (
-              <td className={`historical-range__table-category-value--${key}`}>
-                {calculateGrandTotals(key)}
+              <td
+                className={`historical-range__table-category-value--${category}`}
+              >
+                {calculateGrandTotals(category)}
               </td>
             )}
           </tr>
