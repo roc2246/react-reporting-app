@@ -86,9 +86,9 @@ export async function downloadHistoricalRange(req, res, startDate, endDate, getH
 /**
  * Download order volumes report
  */
-export async function getOrderVolumesReport(req, res, startDate, endDate, getVolumesFn = models.getOrderVolumes) {
+export async function getOrderVolumesReport(req, res, startDate, endDate) {
   try {
-    const volumes = await getVolumesFn(startDate, endDate);
+    const volumes = await models.getOrderVolumes(startDate, endDate);
 
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet("OrderVolumes");

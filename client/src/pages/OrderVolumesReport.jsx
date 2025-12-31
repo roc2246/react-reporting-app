@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import LoadingMssg from "../components/LoadingMssg";
-
+import Input from "../components/Input";
 import Select from "../components/Select";
 import * as fetchLib from "../utils/fetch-library";
 import * as dateLib from "../utils/date-library";
@@ -29,7 +29,7 @@ const OrderVolumesReport = () => {
   useEffect(() => {
     const fetchDates = async () => {
       try {
-        const json = await fetchLib.fetchJSON("/que-dates");
+        const json = await fetchLib.fetchJSON("/api/que-dates");
         setDates(json.reverse());
         if (json.length > 0) {
           setStartDate(json[json.length - 1]);
@@ -51,7 +51,7 @@ const OrderVolumesReport = () => {
 
     try {
       const data = await fetchLib.fetchJSON(
-        `/order-volumes-report?startDate=${adjustedStart}&endDate=${endDate}`
+        `/api/order-volumes-report?startDate=${adjustedStart}&endDate=${endDate}`
       );
       setData(data);
     } catch (err) {
