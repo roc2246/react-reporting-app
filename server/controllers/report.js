@@ -88,25 +88,17 @@ export async function downloadHistoricalRange(req, res, startDate, endDate, getH
  */
 export async function getOrderVolumesReport(req, res, startDate, endDate) {
   try {
-    const volumes = await models.getOrderVolumes(startDate, endDate);
+    if (startDate === undefined)
+      startDate = utilities.getProductionDay().thirtyOneDaysAgo;
+    if (endDate === undefined) endDate = utilities.getProductionDay().today;
 
-    const workbook = new Excel.Workbook();
-    const worksheet = workbook.addWorksheet("OrderVolumes");
+    const selectDates = utilities.getDatesForWeeks(startDate, endDate);
 
-    // Add headers
-    worksheet.addRow(["OrderID", "Volume"]);
-
-    volumes.forEach((row) => {
-      worksheet.addRow([row.orderID, row.volume]);
-    });
-
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", "attachment; filename=orderVolumes.xlsx");
-
-    await workbook.xlsx.write(res);
-  } catch (err) {
-    console.error(err);
-    if (res?.status && res.send) res.status(500).send("Internal Server Error");
+    const ques = await models.orderVolumesReport(selectDates);
+    res.status(200).send(ques);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Internal Server Error");
   }
 }
 

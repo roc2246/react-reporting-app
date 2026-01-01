@@ -69,7 +69,7 @@ export async function orderVolumesReport(dates) {
       result.push(data);
     }
 
-    return result;
+    return result.length > 0 ? result : [{ Error: "No documents available" }];
   } catch (error) {
     console.error("Error fetching historical range report:", error);
     throw error;
