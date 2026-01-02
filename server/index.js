@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import routes from "./routes/index.js"; 
 import dotenv from "dotenv";
 import { connectToDB } from "./models/index.js";
+import * as chron from "./chron/index.js";
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
 app.use("/api", routes);
+
+chron.initCron();
 
 app.use((req, res) => {
   res.status(404).send("Not Found");

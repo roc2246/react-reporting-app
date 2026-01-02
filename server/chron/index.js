@@ -31,10 +31,8 @@ export default async function initCron() {
 
   // Archive totals
   cron.schedule("0 23 * * *", async () => {
-    const devRoute =
-      "https://reporting-app-3194629a4aed.herokuapp.com/data-from-day";
     try {
-      const response = await fetch(devRoute);
+      const response = await fetch("/api/data-from-day" || devRoute);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       await controllers.manageDailyTotals(data);
