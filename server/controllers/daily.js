@@ -62,3 +62,18 @@ export async function totalsOnFly(req, res) {
     return res.status(500).send("Internal Server Error");
   }
 }
+
+  export function updateProductionDay(orders, shipmentIds, productionDay) {
+    const shipmentOrderIdsSet = new Set(
+      shipmentIds.map((shipment) => shipment.orderId)
+    );
+
+    orders.forEach((order) => {
+      if (shipmentOrderIdsSet.has(order.orderId)) {
+        models.setProductionDay(order.orderId, productionDay);
+        console.log(
+          `Shipment orderId: ${order.orderId} Date: ${productionDay}`
+        );
+      }
+    });
+  }

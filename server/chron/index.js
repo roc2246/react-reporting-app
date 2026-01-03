@@ -7,33 +7,19 @@ import cron from "node-cron";
 
 export default async function initCron() {
   // FUNCTIONS
-  function updateProductionDay(orders, shipmentIds, productionDay) {
-    const shipmentOrderIdsSet = new Set(
-      shipmentIds.map((shipment) => shipment.orderId)
-    );
 
-    orders.forEach((order) => {
-      if (shipmentOrderIdsSet.has(order.orderId)) {
-        models.setProductionDay(order.orderId, productionDay);
-        console.log(
-          `Shipment orderId: ${order.orderId} Date: ${productionDay}`
-        );
-      }
-    });
-  }
 
   // RUNS CRON JOBS
 
   // Archive orders
-  cron.schedule("*/30 * * * *", async () => {
-    await controllers.manageArchives();
-  });
+  cron.schedule("*/30 * * * *", async () => await controllers.manageArchives());
 
   // Archive totals
   cron.schedule("0 23 * * *", async () => {
     try {
       const response = await fetch("/api/data-from-day" || devRoute);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       await controllers.manageDailyTotals(data);
       console.log(data);
@@ -56,12 +42,12 @@ export default async function initCron() {
         ),
       };
 
-      updateProductionDay(
+      controllers.updateProductionDay(
         orders,
         shipIds.today,
         utilities.getProductionDay().today
       );
-      updateProductionDay(
+      controllers.updateProductionDay(
         orders,
         shipIds.tomorrow,
         utilities.getProductionDay().tomorrow
