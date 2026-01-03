@@ -17,10 +17,7 @@ export default async function initCron() {
   // Archive totals
   cron.schedule("0 23 * * *", async () => {
     try {
-      const response = await fetch("/api/data-from-day" || devRoute);
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
+      const data = utilities.fetchDataFromDay();
       await controllers.manageDailyTotals(data);
       console.log(data);
     } catch (error) {
