@@ -21,7 +21,7 @@ app.use(express.json());
 
 app.use("/api", routes);
 
-chron.initCron();
+// chron.initCron();
 
 app.use((req, res) => {
   res.status(404).send("Not Found");
