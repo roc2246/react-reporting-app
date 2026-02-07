@@ -11,10 +11,8 @@ export async function archiveOrders(req, res, page = 1) {
 
   try {
     const orders = await utilities.fetchOrders(url);
-    res.json(orders);
   } catch (err) {
     console.error(err);
-    if (res?.status && res.send) res.status(500).send("Internal Server Error");
   }
 }
 
@@ -59,16 +57,31 @@ export async function recoverData(req, res, page = 1, date) {
  * Process shipped orders and add new ones to the database
  */
 
-export async function manageArchives() {
+export async function archiveOrders(req, res, page = 1) {
+  const now = new Date();
+  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+  const url = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${page}&pageSize=500`;
+
   try {
-    const url = (no) => `/api/pull-orders?page=${no}`;
-    const { orders, total, pages } = await utilities.fetchData(url(1));
+    const orders = await utilities.fetchOrders(url);
+  } catch (err) {
+    console.error(err);
+  }
+}
+export async function manageArchives(page = 1) {
+  try {
+    const now = new Date();
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    const url = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${page}&pageSize=500`;
+
+    const { orders, total, pages } = await utilities.fetchOrders(url);
 
     let allOrders = [...orders];
 
     if (pages > 1) {
       for (let x = 2; x <= pages; x++) {
-        const { orders: additionalOrders } = await utilities.fetchData(url(x));
+        const nextURL = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${x}&pageSize=500`;
+        const { orders: additionalOrders } = await utilities.fetchOrders(nextURL);
         allOrders.push(...additionalOrders);
       }
     }

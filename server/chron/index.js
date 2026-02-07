@@ -27,23 +27,18 @@ export async function initCron() {
     console.log("Order processing is running");
     try {
       const orders = await models.unprocessedOrderIds();
+
+      const todaysDate = utilities.getProductionDay().today;
+      const tomorrowDate = utilities.getProductionDay().tomorrow;
+
       const shipIds = {
-        today: await models.shipIdsByDate(utilities.getProductionDay().today),
-        tomorrow: await models.shipIdsByDate(
-          utilities.getProductionDay().tomorrow
-        ),
+        today: await models.shipIdsByDate(todaysDate),
+        tomorrow: await models.shipIdsByDate(tomorrowDate),
       };
 
-      controllers.updateProductionDay(
-        orders,
-        shipIds.today,
-        utilities.getProductionDay().today
-      );
-      controllers.updateProductionDay(
-        orders,
-        shipIds.tomorrow,
-        utilities.getProductionDay().tomorrow
-      );
+      controllers.updateProductionDay(orders, shipIds.today, todaysDate);
+      controllers.updateProductionDay(orders, shipIds.tomorrow, tomorrowDate);
+      
     } catch (e) {
       console.error(`Error: ${e}`);
       const { default: sendEmail } = await import("../email/index.js");

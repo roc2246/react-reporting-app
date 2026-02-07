@@ -15,11 +15,6 @@ router.post("/logout", (req, res) => {
 });
 
 // ----- ORDERS -----
-router.get("/pull-orders", /* middleware.rateLimitMiddleware, */ (req, res) => {
-  const page = req.query.page;
-  controllers.archiveOrders(req, res, page);
-});
-
 router.get("/recover-orders", /* middleware.rateLimitMiddleware, */ (req, res) => {
   const page = req.query.page;
   const date = req.query.date;

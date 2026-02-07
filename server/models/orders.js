@@ -62,16 +62,6 @@ export async function setProductionDay(orderId, date) {
     .updateOne({ orderId }, { $set: { productionDay: date } });
 }
 
-// Get all order IDs
-export async function getAllOrderIDs() {
-  const { db } = await connectToDB();
-  return await db
-    .collection("orders")
-    .find({})
-    .project({ orderId: 1 })
-    .toArray();
-}
-
 // Get order IDs by date range
 export async function getOrderIDs(startDate, endDate) {
   const { db } = await connectToDB();

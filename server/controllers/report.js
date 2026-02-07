@@ -37,9 +37,9 @@ export async function downloadRangeSummary(req, res, startDate, endDate, getHist
 /**
  * Download order IDs for a given date range
  */
-export async function downloadOrderIDs(req, res, startDate, endDate, getOrderIDsFn = models.getOrderIDs) {
+export async function downloadOrderIDs(req, res, startDate, endDate) {
   try {
-    const orderIDs = await getOrderIDsFn(startDate, endDate);
+    const orderIDs = await models.getOrderIDs(startDate, endDate);
 
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet("Orders");
