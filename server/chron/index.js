@@ -5,12 +5,7 @@ import * as models from "../models/index.js";
 import * as utilities from "../utilities/index.js";
 import cron from "node-cron";
 
-export default async function initCron() {
-  // FUNCTIONS
-
-
-  // RUNS CRON JOBS
-
+export async function initCron() {
   // Archive orders
   cron.schedule("*/30 * * * *", async () => await controllers.manageArchives());
 
