@@ -73,10 +73,9 @@ export async function manageArchives() {
       }
     }
 
-    await manageShipstationOrders(allOrders);
+    await models.newArchive(allOrders);
   } catch (error) {
     console.error("Error:", error);
-    // await require("../email/index")("Error", error.stack.toString());
   }
 }
 
