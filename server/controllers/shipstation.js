@@ -118,68 +118,33 @@ export async function manageRecovered(date) {
 
 export async function manageShipmentsNotified(req, res) {
   try {
-    const payload = req.body;
-    const resourceUrl = payload.resource_url;
+    const { resource_url: url } = req.body;
 
-    const url = resourceUrl;
-
+    // Immediately respond to webhook
     res.status(202).send("Request accepted, processing...");
 
-    const options = {
-      hostname: process.env.BASE_URL,
-      path: url,
-      method: "GET",
-      auth: `${process.env.API_KEY}:${process.env.API_SECRET}`,
-    };
-
-    function getDataFromExternalService() {
-      return new Promise((resolve, reject) => {
-        const getRequest = https.request(options, (response) => {
-          let data = "";
-
-          response.on("data", (chunk) => {
-            data += chunk;
-          });
-
-          response.on("end", () => {
-            resolve(data);
-          });
-        });
-
-        getRequest.on("error", (e) => {
-          reject(e);
-        });
-
-        getRequest.end();
-      });
-    }
-
-    const data = await getDataFromExternalService();
-    const notification = JSON.parse(data);
-
+    // Fetch the ShipStation shipment data
+    const notification = await utilities.fetchOrders(url);
     const shipments = notification.shipments;
 
-    for (let shipment in shipments) {
-      shipments[shipment].notificationDate = utilities.getProductionDay().today;
-      shipments[shipment].notificationTime = utilities.getEastCoastTime();
-    }
+    const today = utilities.getProductionDay().today;
+    const tomorrow = utilities.getProductionDay().tomorrow;
 
-    // Adds production day
-    for (let time in shipments) {
-      if (
-        utilities.parseTime(shipments[time].notificationTime) <
-        utilities.parseTime("5:00 PM")
-      ) {
-        shipments[time].productionDay = utilities.getProductionDay().today;
-      } else {
-        shipments[time].productionDay = utilities.getProductionDay().tomorrow;
-      }
-    }
+    // Add timestamps and production day
+    Object.values(shipments).forEach((shipment) => {
+      shipment.notificationDate = today;
+      shipment.notificationTime = utilities.getEastCoastTime();
+      shipment.productionDay =
+        utilities.parseTime(shipment.notificationTime) < utilities.parseTime("5:00 PM")
+          ? today
+          : tomorrow;
+    });
 
-    console.log(shipments);
+    console.log("ShipStation shipments notified:", shipments);
 
-    models.newNotification(shipments);
+    await models.newNotification(shipments);
   } catch (error) {
-    console.error(error);
+    console.error("Error processing ShipStation shipments:", error);
   }
 }
+
