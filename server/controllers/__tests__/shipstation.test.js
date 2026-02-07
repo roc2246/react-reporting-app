@@ -43,15 +43,6 @@ describe("ShipStation Controllers", () => {
     return { request, on, end };
   }
 
-  it("archiveOrders calls res.json with orders", async () => {
-    const orders = [{ orderNumber: "123" }];
-    mockHttpsResponse(orders);
-
-    await shipstation.archiveOrders({}, res, 1);
-
-    expect(res.json).toHaveBeenCalledWith(orders);
-  });
-
   it("awaitingShipment calls res.json with orders", async () => {
     const orders = [{ orderNumber: "456" }];
     mockHttpsResponse(orders);

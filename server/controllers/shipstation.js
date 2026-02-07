@@ -2,21 +2,6 @@ import * as models from "../models/index.js";
 import * as utilities from "../utilities/index.js";
 
 /**
- * Returns orders shipped in the last 12 hours
- */
-export async function archiveOrders(req, res, page = 1) {
-  const now = new Date();
-  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-  const url = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${page}&pageSize=500`;
-
-  try {
-    const orders = await utilities.fetchOrders(url);
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-/**
  * Returns orders awaiting shipment
  */
 export async function awaitingShipment(req, res, page = 1) {
@@ -56,18 +41,6 @@ export async function recoverData(req, res, page = 1, date) {
 /**
  * Process shipped orders and add new ones to the database
  */
-
-export async function archiveOrders(req, res, page = 1) {
-  const now = new Date();
-  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-  const url = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${page}&pageSize=500`;
-
-  try {
-    const orders = await utilities.fetchOrders(url);
-  } catch (err) {
-    console.error(err);
-  }
-}
 export async function manageArchives(page = 1) {
   try {
     const now = new Date();
