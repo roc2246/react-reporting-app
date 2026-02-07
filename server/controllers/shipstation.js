@@ -1,5 +1,6 @@
 import * as models from "../models/index.js";
 import * as utilities from "../utilities/index.js";
+import https from "https";
 
 /**
  * Returns orders awaiting shipment
@@ -113,4 +114,72 @@ export async function manageRecovered(date) {
   }
 
   return allOrders;
+}
+
+export async function manageShipmentsNotified(req, res) {
+  try {
+    const payload = req.body;
+    const resourceUrl = payload.resource_url;
+
+    const url = resourceUrl;
+
+    res.status(202).send("Request accepted, processing...");
+
+    const options = {
+      hostname: process.env.BASE_URL,
+      path: url,
+      method: "GET",
+      auth: `${process.env.API_KEY}:${process.env.API_SECRET}`,
+    };
+
+    function getDataFromExternalService() {
+      return new Promise((resolve, reject) => {
+        const getRequest = https.request(options, (response) => {
+          let data = "";
+
+          response.on("data", (chunk) => {
+            data += chunk;
+          });
+
+          response.on("end", () => {
+            resolve(data);
+          });
+        });
+
+        getRequest.on("error", (e) => {
+          reject(e);
+        });
+
+        getRequest.end();
+      });
+    }
+
+    const data = await getDataFromExternalService();
+    const notification = JSON.parse(data);
+
+    const shipments = notification.shipments;
+
+    for (let shipment in shipments) {
+      shipments[shipment].notificationDate = utilities.getProductionDay().today;
+      shipments[shipment].notificationTime = utilities.getEastCoastTime();
+    }
+
+    // Adds production day
+    for (let time in shipments) {
+      if (
+        utilities.parseTime(shipments[time].notificationTime) <
+        utilities.parseTime("5:00 PM")
+      ) {
+        shipments[time].productionDay = utilities.getProductionDay().today;
+      } else {
+        shipments[time].productionDay = utilities.getProductionDay().tomorrow;
+      }
+    }
+
+    console.log(shipments);
+
+    models.newNotification(shipments);
+  } catch (error) {
+    console.error(error);
+  }
 }
