@@ -5,9 +5,11 @@ import * as utilities from "../utilities/index.js";
 /**
  * Download summary of historical range with totals and items/hour
  */
-export async function downloadRangeSummary(req, res, startDate, endDate, getHistoricalFn = models.getHistoricalRange) {
+export async function downloadRangeSummary(req, res) {
   try {
-    const dailyTotals = await getHistoricalFn(startDate, endDate);
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const dailyTotals = await models.getHistoricalRange(startDate, endDate);
 
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet("Sheet1");
@@ -20,11 +22,19 @@ export async function downloadRangeSummary(req, res, startDate, endDate, getHist
       grandTotals.totalHours += total.totalHours || 0;
     }
 
-    grandTotals.itemsPerHour = utilities.itemsPerHour(grandTotals.items, grandTotals.totalHours);
+    grandTotals.itemsPerHour = utilities.itemsPerHour(
+      grandTotals.items,
+      grandTotals.totalHours,
+    );
 
-    Object.entries(grandTotals).forEach(([key, value]) => worksheet.addRow([key, value]));
+    Object.entries(grandTotals).forEach(([key, value]) =>
+      worksheet.addRow([key, value]),
+    );
 
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
     res.setHeader("Content-Disposition", "attachment; filename=output.xlsx");
 
     await workbook.xlsx.write(res);
@@ -37,8 +47,10 @@ export async function downloadRangeSummary(req, res, startDate, endDate, getHist
 /**
  * Download order IDs for a given date range
  */
-export async function downloadOrderIDs(req, res, startDate, endDate) {
+export async function downloadOrderIDs(req, res) {
   try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
     const orderIDs = await models.getOrderIDs(startDate, endDate);
 
     const workbook = new Excel.Workbook();
@@ -46,7 +58,10 @@ export async function downloadOrderIDs(req, res, startDate, endDate) {
 
     orderIDs.forEach((id) => worksheet.addRow([id]));
 
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
     res.setHeader("Content-Disposition", "attachment; filename=orderIDs.xlsx");
 
     await workbook.xlsx.write(res);
@@ -59,9 +74,11 @@ export async function downloadOrderIDs(req, res, startDate, endDate) {
 /**
  * Download a historical range report with calculated metrics
  */
-export async function downloadHistoricalRange(req, res, startDate, endDate, getHistoricalFn = models.getHistoricalRange) {
+export async function downloadHistoricalRange(req, res) {
   try {
-    const data = await getHistoricalFn(startDate, endDate);
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const data = await models.getHistoricalRange(startDate, endDate);
 
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet("HistoricalRange");
@@ -73,8 +90,14 @@ export async function downloadHistoricalRange(req, res, startDate, endDate, getH
       worksheet.addRow([row.date, row.items, row.hats, row.totalHours]);
     });
 
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", "attachment; filename=historicalRange.xlsx");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=historicalRange.xlsx",
+    );
 
     await workbook.xlsx.write(res);
   } catch (err) {
@@ -86,8 +109,10 @@ export async function downloadHistoricalRange(req, res, startDate, endDate, getH
 /**
  * Download order volumes report
  */
-export async function getOrderVolumesReport(req, res, startDate, endDate) {
+export async function getOrderVolumesReport(req, res) {
   try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
     if (startDate === undefined)
       startDate = utilities.getProductionDay().thirtyOneDaysAgo;
     if (endDate === undefined) endDate = utilities.getProductionDay().today;
@@ -102,8 +127,10 @@ export async function getOrderVolumesReport(req, res, startDate, endDate) {
   }
 }
 
-export async function getSummarizedRange(req, res, startDate, endDate) {
+export async function getSummarizedRange(req, res) {
   try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
     const historicalRange = await models.getHistoricalRange(startDate, endDate);
     res.json(historicalRange);
   } catch (e) {
@@ -113,8 +140,10 @@ export async function getSummarizedRange(req, res, startDate, endDate) {
   }
 }
 
-export async function manageHistoricalRange(req, res, startDate, endDate) {
+export async function manageHistoricalRange(req, res) {
   try {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
     const range = await models.getHistoricalRange(startDate, endDate);
     res.json(range);
   } catch (e) {
