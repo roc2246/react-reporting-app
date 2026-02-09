@@ -5,7 +5,8 @@ import https from "https";
 /**
  * Returns orders awaiting shipment
  */
-export async function awaitingShipment(req, res, page = 1) {
+export async function awaitingShipment(req, res) {
+  const page = req.query.page;
   const url = `/orders?orderStatus=awaiting_shipment&pageSize=500&page=${page}`;
 
   try {
@@ -20,7 +21,9 @@ export async function awaitingShipment(req, res, page = 1) {
 /**
  * Recovers shipped orders for a given date
  */
-export async function recoverData(req, res, page = 1, date) {
+export async function recoverData(req, res) {
+  const page = req.query.page;
+  const date = req.query.date;
   const prevDate = new Date(
     new Date(date).setDate(new Date(date).getDate() - 1),
   )
@@ -42,11 +45,11 @@ export async function recoverData(req, res, page = 1, date) {
 /**
  * Process shipped orders and add new ones to the database
  */
-export async function manageArchives(page = 1) {
+export async function manageArchives() {
   try {
     const now = new Date();
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-    const url = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${page}&pageSize=500`;
+    const url = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${1}&pageSize=500`;
 
     const { orders, total, pages } = await utilities.fetchOrders(url);
 
@@ -55,7 +58,8 @@ export async function manageArchives(page = 1) {
     if (pages > 1) {
       for (let x = 2; x <= pages; x++) {
         const nextURL = `/orders?orderStatus=shipped&modifyDateStart=${twelveHoursAgo.toISOString()}&modifyDateEnd=${now.toISOString()}&page=${x}&pageSize=500`;
-        const { orders: additionalOrders } = await utilities.fetchOrders(nextURL);
+        const { orders: additionalOrders } =
+          await utilities.fetchOrders(nextURL);
         allOrders.push(...additionalOrders);
       }
     }
@@ -135,7 +139,8 @@ export async function manageShipmentsNotified(req, res) {
       shipment.notificationDate = today;
       shipment.notificationTime = utilities.getEastCoastTime();
       shipment.productionDay =
-        utilities.parseTime(shipment.notificationTime) < utilities.parseTime("5:00 PM")
+        utilities.parseTime(shipment.notificationTime) <
+        utilities.parseTime("5:00 PM")
           ? today
           : tomorrow;
     });
@@ -147,4 +152,3 @@ export async function manageShipmentsNotified(req, res) {
     console.error("Error processing ShipStation shipments:", error);
   }
 }
-

@@ -9,17 +9,8 @@ router.post("/login", controllers.login);
 router.post("/logout", controllers.logout);
 
 // ----- ORDERS -----
-router.get("/recover-orders", (req, res) => {
-  const page = req.query.page;
-  const date = req.query.date;
-  controllers.recoverData(req, res, page, date);
-});
-
-router.get("/awaiting-shipment", (req, res) => {
-  const page = req.query.page;
-  controllers.awaitingShipment(req, res, page);
-});
-
+router.get("/recover-orders", controllers.recoverData);
+router.get("/awaiting-shipment", controllers.awaitingShipment);
 router.get("/data-from-day", controllers.dataOfDay);
 router.get("/data-on-fly", controllers.totalsOnFly);
 
