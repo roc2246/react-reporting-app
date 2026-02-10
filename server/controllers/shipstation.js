@@ -131,8 +131,8 @@ export async function manageShipmentsNotified(req, res) {
     const notification = await utilities.fetchOrders(url);
     const shipments = notification.shipments;
 
-    const today = utilities.getProductionDay().today;
-    const tomorrow = utilities.getProductionDay().tomorrow;
+    const today = utilities.productionDay().today;
+    const tomorrow = utilities.productionDay().tomorrow;
 
     // Add timestamps and production day
     Object.values(shipments).forEach((shipment) => {

@@ -28,8 +28,8 @@ export async function initCron() {
     try {
       const orders = await models.unprocessedOrderIds();
 
-      const todaysDate = utilities.getProductionDay().today;
-      const tomorrowDate = utilities.getProductionDay().tomorrow;
+      const todaysDate = utilities.productionDay().today;
+      const tomorrowDate = utilities.productionDay().tomorrow;
 
       const shipIds = {
         today: await models.shipIdsByDate(todaysDate),
@@ -83,7 +83,7 @@ export async function initCron() {
   // Sends morning count at 5am
   cron.schedule("0 5 * * *", async () => {
     try {
-      const productionDay = utilities.getProductionDay().today;
+      const productionDay = utilities.productionDay().today;
       const morningCount = await utilities.morningCounts();
       const email = "morningcounts@customcatch.simplelists.com";
 

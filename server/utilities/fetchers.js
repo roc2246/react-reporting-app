@@ -7,7 +7,7 @@ export async function fetchAwaiting(pageNo) {
 }
 
 export async function fetchData(url) {
-   const response = await fetch(url);
+  const response = await fetch(url);
   if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
   return await response.json();
 }
@@ -26,9 +26,8 @@ export async function fetchOrders(url) {
 
     const req = https.request(options, (res) => {
       let data = "";
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
+      res.on("data", (chunk) => (data += chunk));
+
       res.on("end", () => {
         try {
           resolve(JSON.parse(data));

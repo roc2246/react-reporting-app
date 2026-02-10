@@ -4,7 +4,9 @@ import { connectToDB } from "./db.js";
 export async function findUser(username) {
   try {
     const { db } = await connectToDB();
-    return await db.collection("users").findOne({ username });
+    const collection = db.collection("users");
+
+    return await collection.findOne({ username });
   } catch (err) {
     console.error(err);
     throw err;

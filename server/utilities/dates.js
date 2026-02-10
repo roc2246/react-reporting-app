@@ -31,7 +31,7 @@ export function parseTime(timeString) {
   return time;
 }
 
-export function getProductionDay() {
+export function productionDay() {
   const options = { timeZone: "America/New_York" };
   const formatDate = (dateString) => {
     const [month, day, year] = dateString.split("/");
@@ -81,7 +81,7 @@ export function isLeapYear(year) {
 
 export function getWeekSpan() {
   const dates = [];
-  let [year, month, day] = getProductionDay().today.split("-").map(Number);
+  let [year, month, day] = productionDay().today.split("-").map(Number);
 
   for (let x = 0; x < 7; x++) {
     let tempDay = day - x;

@@ -1,5 +1,5 @@
 import { connectToDB } from "./db.js";
-import { getProductionDay } from "../utilities/index.js";
+import { productionDay } from "../utilities/index.js";
 
 // Get order queue productionDays
 export async function pullQueDays() {
@@ -12,7 +12,7 @@ export async function pullQueDays() {
 export async function addQueTotal(time) {
   const { db } = await connectToDB();
   const collection = db.collection("order-que");
-  const todaysDate = getProductionDay().today;
+  const todaysDate = productionDay().today;
 
   const que = await collection.find({ productionDay: todaysDate }).toArray();
   if (!que.length) {

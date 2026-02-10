@@ -19,7 +19,7 @@ describe("dates utilities", () => {
   });
 
   it("getProductionDay returns today, tomorrow, and thirtyOneDaysAgo", () => {
-    const result = dates.getProductionDay();
+    const result = dates.productionDay();
     expect(result).toHaveProperty("today");
     expect(result).toHaveProperty("tomorrow");
     expect(result).toHaveProperty("thirtyOneDaysAgo");

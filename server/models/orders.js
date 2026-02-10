@@ -1,10 +1,10 @@
 import { connectToDB } from "./db.js";
-import { getProductionDay, itemsPerHour } from "../utilities/index.js";
 
 // Insert new orders
 export async function newArchive(orders) {
   try {
     const { db } = await connectToDB();
+    const collection = db.collection("orders");
 
     const bulkOps = orders.map((order) => ({
       updateOne: {
@@ -18,9 +18,7 @@ export async function newArchive(orders) {
       console.log("No new orders to insert.");
       return;
     }
-    const result = await db.collection("orders").bulkWrite(bulkOps, {
-      ordered: false,
-    });
+    const result = await collection.bulkWrite(bulkOps, { ordered: false });
 
     console.log(`${result.upsertedCount} new orders inserted.`);
   } catch (error) {
@@ -32,6 +30,7 @@ export async function newArchive(orders) {
 export async function queryOrdersByDate(date) {
   const { db } = await connectToDB();
   const collection = db.collection("orders");
+
   const query = { productionDay: date };
   const projection = { items: 1, customerNotes: 1 };
   const stream = collection.find(query).project(projection).stream();
@@ -47,8 +46,9 @@ export async function queryOrdersByDate(date) {
 // Orders missing productionDay
 export async function unprocessedOrderIds() {
   const { db } = await connectToDB();
-  return await db
-    .collection("orders")
+  const collection = db.collection("orders");
+
+  return await collection
     .find({ productionDay: { $exists: false } })
     .project({ _id: 0, orderId: 1 })
     .toArray();
@@ -57,15 +57,17 @@ export async function unprocessedOrderIds() {
 // Set productionDay for an order
 export async function setProductionDay(orderId, date) {
   const { db } = await connectToDB();
-  await db
-    .collection("orders")
-    .updateOne({ orderId }, { $set: { productionDay: date } });
+  const collection = db.collection("orders");
+
+  await collection.updateOne({ orderId }, { $set: { productionDay: date } });
 }
 
 // Get order IDs by date range
 export async function getOrderIDs(startDate, endDate) {
   const { db } = await connectToDB();
-  return await db.collection("orders").distinct("orderId", {
+  const collection = db.collection("orders");
+
+  return await collection.distinct("orderId", {
     productionDay: { $gte: startDate, $lte: endDate },
   });
 }

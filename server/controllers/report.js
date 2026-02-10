@@ -114,8 +114,8 @@ export async function getOrderVolumesReport(req, res) {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
     if (startDate === undefined)
-      startDate = utilities.getProductionDay().thirtyOneDaysAgo;
-    if (endDate === undefined) endDate = utilities.getProductionDay().today;
+      startDate = utilities.productionDay().thirtyOneDaysAgo;
+    if (endDate === undefined) endDate = utilities.productionDay().today;
 
     const selectDates = utilities.getDatesForWeeks(startDate, endDate);
 
